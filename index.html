@@ -6,62 +6,141 @@
 <title>증상 체크 · 진료과 안내</title>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.css">
 <style>
-  .info{margin-top:12px;border-top:1px solid var(--line);padding-top:10px}
-  .info summary{cursor:pointer;font-weight:600;color:var(--main)}
-  .info p{margin:10px 0}
-  .info ul{margin:6px 0;padding-left:18px}
-  .info li{margin:6px 0}
-  .gh{font-weight:700;margin:14px 0 6px}
-  .gh.warn{color:var(--warn)}
-  .gi{background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:10px 12px;margin:6px 0;font-size:.93rem}
-  .gd{font-weight:700;margin-bottom:4px}
-  .gh.aid{color:#1f8f5f}
-  ol.aid{margin:6px 0;padding-left:20px}
-  ol.aid li{margin:6px 0}
-  .gt.r2{background:#5d6b7a}
-  .gt.r3{background:#8a97a6}
-  .gt{background:var(--main);color:#fff;border-radius:6px;padding:1px 8px;font-size:.75rem;margin-left:8px;font-weight:600}
-  #map{height:340px;border-radius:12px;margin-top:10px;border:1px solid var(--line)}
-  .hl{background:color-mix(in srgb,var(--main) 14%,var(--card));border-radius:8px;padding:4px 8px}
-  li.h{margin:6px 0;list-style:none;padding:4px 8px}
-  :root{--bg:#f5f8fb;--card:#fff;--text:#1d2733;--sub:#5d6b7a;--main:#2f7be5;--warn:#d93636;--line:#e2e8ef}
-  @media (prefers-color-scheme:dark){:root{--bg:#10151b;--card:#1a222b;--text:#e8eef5;--sub:#9aa8b7;--main:#5b9cf0;--warn:#ff6b6b;--line:#2a3541}}
+  /* ── 디자인 토큰: 인포그래픽형 (파랑·초록·보라·주황·빨강 섹션, 노란 알약 강조) ── */
+  :root{
+    --bg1:#e8f3ff;--bg2:#fff7e6;--card:#fff;--soft:#f3f7fc;--text:#1b2733;--sub:#566574;--line:#d9e2ec;
+    --blue:#1f6fd0;--green:#23995a;--red:#e03131;--purple:#7048c9;--orange:#ec7f12;--teal:#13949a;
+    --pill:#ffe27a;--pilltx:#4a3600;--hero:rgba(255,255,255,.82);
+  }
+  @media (prefers-color-scheme:dark){:root{
+    --bg1:#0f1a28;--bg2:#1a1710;--card:#18212b;--soft:#202b37;--text:#e8eef5;--sub:#9fb0c0;--line:#2c3947;
+    --blue:#4c8fe8;--green:#3cb87a;--red:#ff6b6b;--purple:#9a7be0;--orange:#f59a3c;--teal:#2bbcc2;
+    --pill:#5a4a12;--pilltx:#ffe9a8;--hero:rgba(24,33,43,.82);
+  }}
   *{box-sizing:border-box}
-  body{margin:0;background:var(--bg);color:var(--text);font-family:system-ui,"Malgun Gothic",sans-serif;line-height:1.6}
-  main{max-width:640px;margin:0 auto;padding:24px 16px 60px}
-  h1{font-size:1.5rem;margin:0 0 4px}
-  .sub{color:var(--sub);margin:0 0 20px}
-  .card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px;margin-bottom:16px}
-  textarea{width:100%;min-height:90px;padding:12px;border-radius:10px;border:1px solid var(--line);background:var(--bg);color:var(--text);font:inherit;resize:vertical}
-  button{background:var(--main);color:#fff;border:0;border-radius:10px;padding:11px 18px;font:inherit;font-weight:600;cursor:pointer;margin-top:10px}
-  button.ghost{background:transparent;color:var(--main);border:1px solid var(--main)}
-  .chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
-  .chip{background:var(--bg);border:1px solid var(--line);color:var(--text);border-radius:999px;padding:4px 12px;font-size:.85rem;margin:0;font-weight:400}
-  .urgent{border-color:var(--warn);background:color-mix(in srgb,var(--warn) 10%,var(--card))}
-  .urgent b{color:var(--warn)}
-  .dept{font-size:1.25rem;font-weight:700;color:var(--main)}
-  .tag{display:inline-block;background:var(--bg);border-radius:6px;padding:2px 8px;margin:2px 4px 2px 0;font-size:.9rem}
+  body{margin:0;background:linear-gradient(180deg,var(--bg1) 0,var(--bg2) 100%) fixed;color:var(--text);
+    font-family:"Malgun Gothic","Apple SD Gothic Neo","Noto Sans KR",system-ui,sans-serif;line-height:1.6}
+  main{max-width:980px;margin:0 auto;padding:18px 16px 60px}
+  a{color:var(--blue)}
   ul{padding-left:18px;margin:6px 0}
-  a{color:var(--main)}
   .note{font-size:.82rem;color:var(--sub)}
   .hide{display:none}
+
+  /* ── 히어로: 큰 빨강·검정 제목 + 노란 알약 + 포스트잇 ── */
+  .hero{position:relative;overflow:hidden;background:var(--hero);border:2px solid var(--line);border-radius:24px;
+    padding:22px;margin-bottom:18px;display:grid;grid-template-columns:170px 1fr;gap:20px;align-items:center}
+  .hero::before{content:"";position:absolute;right:-90px;top:-110px;width:340px;height:340px;
+    background:radial-gradient(circle,rgba(255,200,70,.35),transparent 65%);pointer-events:none}
+  .hero>*{position:relative}
+  .hero-art{text-align:center}
+  .hero-art .big{font-size:88px;line-height:1;filter:drop-shadow(0 6px 8px rgba(0,0,0,.18))}
+  .sticker{display:inline-block;background:#fff3a0;color:#5b4a00;border-radius:6px;padding:7px 11px;font-size:.78rem;
+    font-weight:800;transform:rotate(-4deg);box-shadow:0 3px 8px rgba(0,0,0,.18);margin-top:10px}
+  .hero h1{margin:0;font-size:clamp(1.7rem,4.8vw,2.7rem);line-height:1.22;font-weight:900;letter-spacing:-.03em}
+  .hero h1 .red{color:var(--red)}
+  .pill{display:inline-block;background:var(--pill);color:var(--pilltx);border-radius:999px;padding:6px 18px;
+    font-weight:900;margin:12px 0 10px;font-size:clamp(.92rem,2.6vw,1.15rem)}
+  .hero p{margin:0;color:var(--sub);font-size:.93rem}
+  @media (max-width:640px){.hero{grid-template-columns:1fr;text-align:center;padding:18px}.hero-art .big{font-size:64px}}
+
+  /* ── 섹션 카드: 색깔 헤더 바 + 같은 색 테두리 ── */
+  .sec{--c:var(--blue);background:var(--card);border:2px solid var(--c);border-radius:16px;overflow:hidden;margin:0 0 16px}
+  .sec.blue{--c:var(--blue)}.sec.green{--c:var(--green)}.sec.red{--c:var(--red)}
+  .sec.purple{--c:var(--purple)}.sec.orange{--c:var(--orange)}.sec.teal{--c:var(--teal)}
+  .sec-h{background:var(--c);color:#fff;font-weight:900;font-size:1.05rem;padding:9px 14px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+  .sec-h .sh-sub{margin-left:auto;font-size:.78rem;font-weight:700;opacity:.92}
+  .rkn{background:#fff;color:var(--c);border-radius:999px;padding:0 12px;font-weight:900;font-size:.95rem}
+  .sec-b{padding:14px}
+  .sec.inner{margin:12px 0 0;border-width:2px}
+  .sec.inner .sec-h{font-size:.97rem;padding:7px 12px}
+
+  /* ── 입력 ── */
+  textarea{width:100%;min-height:92px;padding:12px;border-radius:12px;border:2px solid var(--line);background:var(--soft);color:var(--text);font:inherit;resize:vertical}
+  textarea:focus{outline:none;border-color:var(--blue)}
+  button{background:var(--blue);color:#fff;border:0;border-radius:12px;padding:11px 24px;font:inherit;font-weight:900;cursor:pointer;margin-top:10px;box-shadow:0 3px 0 rgba(0,0,0,.18)}
+  button:active{transform:translateY(2px);box-shadow:none}
+  .chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+  .chip{background:var(--card);border:2px solid var(--line);color:var(--text);border-radius:999px;padding:3px 12px;font-size:.84rem;margin:0;font-weight:700;box-shadow:none}
+  .chip:hover{border-color:var(--blue);color:var(--blue)}
+
+  /* ── 결과 ── */
+  .lead{background:color-mix(in srgb,var(--blue) 10%,var(--card));border:2px dashed color-mix(in srgb,var(--blue) 45%,transparent);
+    border-radius:12px;padding:8px 14px;margin:0 0 14px;font-size:.9rem;font-weight:700}
+  .banner{display:flex;gap:14px;align-items:center;background:var(--red);color:#fff;border-radius:18px;padding:14px 18px;margin:0 0 16px;box-shadow:0 4px 14px rgba(224,49,49,.35)}
+  .banner .siren{font-size:2.4rem;line-height:1}
+  .banner .b1{font-size:1.1rem;font-weight:900}
+  .why{display:inline-block;background:var(--pill);color:var(--pilltx);border-radius:10px;padding:5px 12px;font-size:.85rem;font-weight:800;margin:0 0 10px}
+  .lbl2{font-size:.78rem;font-weight:900;color:var(--sub);margin-bottom:2px}
+  .tag{display:inline-block;background:color-mix(in srgb,var(--c) 12%,var(--card));border:1px solid color-mix(in srgb,var(--c) 40%,transparent);
+    border-radius:999px;padding:2px 12px;margin:3px 4px 3px 0;font-size:.88rem;font-weight:700}
+
+  /* ── 상세 안내 ── */
+  .info{margin-top:12px}
+  .info>summary{cursor:pointer;list-style:none;background:var(--soft);border:2px dashed var(--line);border-radius:12px;padding:8px 14px;font-weight:900;color:var(--blue)}
+  .info>summary::-webkit-details-marker{display:none}
+  .info[open]>summary{border-style:solid;border-color:var(--blue)}
+  .sumline{background:color-mix(in srgb,var(--blue) 8%,var(--card));border-radius:12px;padding:10px 14px;margin:12px 0 0;font-size:.93rem}
+  .gg{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:10px}
+  .gc{border:2px solid var(--line);border-radius:12px;padding:10px 12px;background:var(--soft);font-size:.9rem}
+  .gc.r1{border-color:var(--blue)}.gc.r2{border-color:var(--green)}.gc.r3{border-color:var(--purple)}
+  .gc h4{margin:0 0 4px;font-size:1rem;display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+  .gn{display:inline-flex;width:26px;height:26px;border-radius:50%;color:#fff;align-items:center;justify-content:center;font-weight:900;font-size:.9rem;background:var(--blue)}
+  .gn.r2{background:var(--green)}.gn.r3{background:var(--purple)}
+  .rtag{font-size:.72rem;font-weight:900;color:#fff;background:var(--blue);border-radius:6px;padding:0 7px}
+  .rtag.r2{background:var(--green)}.rtag.r3{background:var(--purple)}
+  .lbl{display:block;font-size:.74rem;font-weight:900;color:var(--sub);margin-top:6px}
+  ul.rows{list-style:none;padding:0;margin:0}
+  ul.rows li{display:grid;grid-template-columns:minmax(120px,32%) 1fr;gap:10px;padding:7px 0;border-bottom:1px dashed var(--line);font-size:.9rem}
+  ul.rows li:last-child{border-bottom:0}
+  ul.rows b{color:var(--purple)}
+  @media (max-width:560px){ul.rows li{grid-template-columns:1fr;gap:2px}}
+  ol.steps{list-style:none;padding:0;margin:0;counter-reset:s}
+  ol.steps li{counter-increment:s;position:relative;padding:7px 0 7px 38px;border-bottom:1px dashed var(--line)}
+  ol.steps li:last-child{border-bottom:0}
+  ol.steps li::before{content:counter(s);position:absolute;left:0;top:8px;width:26px;height:26px;border-radius:50%;background:var(--c);color:#fff;font-weight:900;display:flex;align-items:center;justify-content:center;font-size:.9rem}
+  ol.steps li span{display:block;font-size:.88rem;color:var(--sub)}
+  ul.ticks,ul.flags,ul.checks{list-style:none;padding:0;margin:0}
+  ul.ticks li,ul.flags li,ul.checks li{position:relative;padding:5px 0 5px 28px;font-size:.93rem}
+  ul.ticks li span{display:block;font-size:.87rem;color:var(--sub)}
+  ul.ticks li::before{content:"✔";position:absolute;left:2px;top:5px;color:var(--orange);font-weight:900}
+  ul.checks li::before{content:"✔";position:absolute;left:2px;top:5px;color:var(--blue);font-weight:900}
+  ul.flags li::before{content:"✓";position:absolute;left:0;top:7px;width:20px;height:20px;border:2px solid var(--red);border-radius:5px;
+    color:var(--red);font-weight:900;font-size:.78rem;display:flex;align-items:center;justify-content:center;background:var(--card)}
+  .alertbox{background:color-mix(in srgb,var(--red) 7%,var(--card))}
+
+  /* ── 지도·병원 ── */
+  #map{height:340px;border-radius:12px;margin-top:10px;border:2px solid var(--line)}
+  .hl{background:color-mix(in srgb,var(--blue) 14%,var(--card));border-radius:8px;padding:4px 8px}
+  li.h{margin:6px 0;list-style:none;padding:4px 8px}
+  .foot{font-size:.82rem;color:var(--sub);text-align:center;margin:6px 0 0}
 </style>
 </head>
 <body>
 <main>
-  <h1>🩺 증상 체크 · 진료과 안내</h1>
-  <p class="sub">아픈 증상을 적으면 관련 가능성이 있는 질환과 방문할 진료과, 근처 병원을 알려드려요.</p>
+  <header class="hero">
+    <div class="hero-art">
+      <div class="big">🩺</div>
+      <div class="sticker">갑자기 배가 아픈데…<br>어느 과로 가야 하지?</div>
+    </div>
+    <div>
+      <h1><span class="red">증상 체크,</span><br>어느 진료과로 가야 할까요?</h1>
+      <div class="pill">1순위 · 2순위 · 3순위 진료과와 근처 병원까지</div>
+      <p>아픈 부위와 증상을 적으면 가능성 있는 질환, 방문할 진료과, 집에서 할 수 있는 응급 조치, 바로 병원에 가야 하는 신호를 알려드려요. 눈이 간지러우면 피부과보다 안과처럼, 부위에 맞는 진료과를 먼저 보여드려요.</p>
+    </div>
+  </header>
 
-  <div class="card">
-    <label for="sym"><b>어떤 증상이 있나요?</b></label>
-    <textarea id="sym" placeholder="예) 어제부터 열이 나고 목이 아프고 기침이 나요"></textarea>
-    <div class="chips" id="chips"></div>
-    <button id="go">분석하기</button>
-  </div>
+  <section class="sec blue">
+    <div class="sec-h">🔍 어떤 증상이 있나요?</div>
+    <div class="sec-b">
+      <textarea id="sym" aria-label="증상 입력" placeholder="예) 어제부터 열이 나고 목이 아프고 기침이 나요"></textarea>
+      <div class="chips" id="chips"></div>
+      <button id="go">분석하기</button>
+    </div>
+  </section>
 
   <div id="result" class="hide"></div>
 
-  <p class="note">※ 이 서비스는 참고용 정보이며 의사의 진단을 대신하지 않습니다. 증상이 심하거나 걱정되면 반드시 의료기관을 방문하세요. 응급 상황에는 즉시 119에 연락하세요.</p>
+  <p class="foot">※ 이 서비스는 참고용 정보이며 의사의 진단을 대신하지 않습니다. 증상이 심하거나 걱정되면 반드시 의료기관을 방문하세요. 응급 상황에는 즉시 119에 연락하세요.</p>
 </main>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js"></script>
@@ -475,9 +554,9 @@ const INFO={
 
 // ── 부위 × 통증표현 조합 규칙 ──
 // A=쑤시고 아픈 표현, B=쓰라리고 따가운 표현, S=피부/점막이 까지고 갈라지는 표현
-const A=["아프","아파","아픔","아픈","아팠","통증","쑤시","쑤셔","쑤신","욱신","콕콕","쿡쿡","찌릿","찌르","뻐근","뻣뻣","결리","결려","당기","당겨","묵직","저리","저려","먹먹","시려","시린","시림","불편","뭉","굳어","굳은"];
-const B=["쓰리","쓰라","따갑","따끔","화끈","얼얼","타는","타들","작열","칼칼"];
-const S=["까짐","까졌","까져","까지고","벗겨","갈라","터졌","터서","트고","트였","짓무","헐었","헐고","물집","딱지","가렵","가려워","가려운","가려움","간지러","간지럽","붉어","빨개","빨갛","붓","부어","부었","발진","각질","진물","고름","피가 나","피나"];
+const A=["아퍼","아푸","아팟","아플","쑤씨","쑤씬","욱씬","욱씩","저릿","찌리","시큰","땅기","땅겨","아프","아파","아픔","아픈","아팠","통증","쑤시","쑤셔","쑤신","욱신","콕콕","쿡쿡","찌릿","찌르","뻐근","뻣뻣","결리","결려","당기","당겨","묵직","저리","저려","먹먹","시려","시린","시림","불편","뭉","굳어","굳은"];
+const B=["쓰렸","쓰려","쓰렵","쓰리다","화끈거","후끈","따가워","따가운","따갑다","쓰리","쓰라","따갑","따끔","화끈","얼얼","타는","타들","작열","칼칼"];
+const S=["간질간질","근질간질","근질근질","근질거","간질거","가렵다","가려운데","까짐","까졌","까져","까지고","벗겨","갈라","터졌","터서","트고","트였","짓무","헐었","헐고","물집","딱지","가렵","가려워","가려운","가려움","간지러","간지럽","붉어","빨개","빨갛","붓","부어","부었","발진","각질","진물","고름","피가 나","피나"];
 const BODY=[
   {p:["머리가","머리를","머리도","머리 쪽","관자놀이","이마","정수리","뒷머리","머릿속"], w:A, d:"신경과", c:["긴장성 두통","편두통","군발두통","부비동염 두통"]},
   {p:["두피","머리 피부","머리피부"], w:[...A,...B,...S], d:"피부과", c:["지루성 두피염","접촉성 피부염","모낭염"]},
@@ -1082,6 +1161,29 @@ attachRule(r=>r.k.includes("대상포진")&&r.k.includes("띠 모양 발진"),"z
 attachRule(r=>r.k.includes("담마진"),"urticaria");
 attachRule(r=>r.k.includes("미주신경"),"vagal");
 
+// ── 부위 확장 + 구어체 표현 (조사 없는 입력·띄어쓰기 달라도 인식) ──
+// 속쓰림 계열: '속 쓰려요' 같은 표현
+(()=>{const r=RULES.find(r=>r.k.includes("신물")&&r.k.includes("명치"));if(r)r.k.push("속쓰","속이쓰","속이 쓰려","속 쓰려");})();
+BODY.push(
+  // 뒤통수·미간·광대 등 두통/부비동 부위
+  {g:"part",p:["뒤통수","후두부","뒤통수가","뒤통수를"],w:[...A,"뻐근","뭉"],d:"신경과 / 재활의학과",c:["긴장성 두통","경추성 두통","후두신경통","고혈압"]},
+  {g:"part",p:["미간","광대","콧등","광대뼈"],w:[...A,"눌리","눌러","묵직"],d:"이비인후과",c:["부비동염(축농증)","비염","두통"]},
+  {g:"part",p:["쇄골","빗장뼈"],w:[...A,"튀어","튀어나","붓","부어"],d:"정형외과",c:["쇄골 골절·염좌","어깨 질환"]},
+  {g:"part",p:["목젖"],w:[...A,...B,"붓","부어","이물","건조"],d:"이비인후과",c:["목젖 부종","편도염","인후염"]},
+  {g:"part",p:["속눈썹","눈썹"],w:["가렵","가려워","가려운","빠지","빠져","다래끼","붓","부어","아프","아파","따갑"],d:"안과 / 피부과",c:["안검염","다래끼","모낭염","속눈썹 질환"]},
+  {g:"part",p:["인중"],w:[...A,...S],d:"피부과 / 치과",c:["입술 포진","모낭염","치아 염증"]},
+  {g:"part",p:["복사뼈","발목뼈"],w:[...A,"붓","부어","삐"],d:"정형외과",c:["발목 염좌","골절","통풍"]},
+  {g:"part",p:["겨드랑이"],w:[...A,...B,...S,"멍울","혹","땀","냄새"],d:"피부과 / 내과",c:["땀샘염","림프절염","액취증","모낭염"]},
+  {g:"part",p:["젖꼭지","유두"],w:[...A,...S,"분비물","피","진물","짓무"],d:"유방외과 / 산부인과",c:["유두 습진","유방염","유관 질환"]},
+  {g:"part",p:["배꼽"],w:[...A,...S,"고름","진물","냄새","붓","부어"],d:"외과 / 소화기내과",c:["배꼽염","배꼽 탈장","요막관 질환"],x:NOCOUNT},
+  {g:"part",p:["오금","무릎 뒤","무릎뒤"],w:[...A,"붓","부어","당기"],d:"정형외과",c:["베이커 낭종","반월상연골 손상","하지정맥 문제"]},
+  {g:"part",p:["새끼발가락","엄지발가락","발가락 사이"],w:[...A,...S,"티눈","굳은살","무좀","물집"],d:"피부과 / 정형외과",c:["무좀","티눈·굳은살","무지외반증","통풍"]}
+);
+// '눈이 오는 날'처럼 날씨(눈)를 가리키는 표현은 부위 '눈'으로 보지 않음
+(()=>{const SNOW=/눈이(?:오|와|내리|내려|쌓|녹|많이와)/g;BODY.filter(e=>e.p&&e.p.includes("눈이")).forEach(e=>{e.x=e.x?rx(e.x,SNOW):SNOW});})();
+// 어지럼: 자세 변화와 관련된 어지럼(이석증)
+RULES.push({k:["이석증","돌아누울 때 어지","머리를 돌리면 어지","누웠다 일어날 때 어지","자세 바꿀 때 어지","고개를 돌리면 어지"],c:["이석증(양성 돌발성 체위 현훈)","전정신경염","메니에르병"],d:"이비인후과 / 신경과"});
+
 const CHIPS=["열","기침","목 아픔","콧물","두통","어지러움","복통","설사","속쓰림","변비","허리 통증","무릎 통증","어깨 통증","피부 가려움","눈 충혈","귀 통증","치통","소변 불편","생리통","불면","피로","두근거림","입안 쓰라림","목 뻣뻣함","피부 까짐","무릎 시림","온몸 쑤심","눈 따가움","소변볼 때 쓰라림","발뒤꿈치 갈라짐"];
 
 const $=id=>document.getElementById(id);
@@ -1090,21 +1192,51 @@ CHIPS.forEach(t=>{const b=document.createElement("button");b.className="chip";b.
   b.onclick=()=>{sym.value=(sym.value?sym.value.trim()+", ":"")+t};$("chips").appendChild(b)});
 
 function analyze(text){
-  // 띄어쓰기 차이를 무시하고 비교 ("가슴이 아파" = "가슴이아파")
+  // 띄어쓰기 유무를 무시하고 비교 ("눈이 간지러워요" = "눈이간지러워요" = "눈 이 간 지 러 워 요")
   const t=text.replace(/\s+/g,"");
   const norm=w=>w.replace(/\s+/g,"");
   // '손목·발목·제목' 같은 단어의 '목'이 목(인후) 키워드에 걸리지 않도록, 해당 단어가 없는 키워드만 가려진 문장으로 비교
   const NECK=/(손|발|팔|눈|양|호|제|과|종|항|안)목/;
-  const t2=t.replace(/(손|발|팔|눈|양|호|제|과|종|항|안)목/g,"$1§");
-  const hits=RULES.map(r=>({r,n:r.k.filter(w=>{const nw=norm(w);return (NECK.test(nw)?t:t2).includes(nw)}).length})).filter(x=>x.n>0);
+  const MASK=/(손|발|팔|눈|양|호|제|과|종|항|안)목/g;
+  const t2=t.replace(MASK,"$1§");
+  const hits=[];
+  RULES.forEach(r=>{
+    const ks=r.k.filter(w=>{const nw=norm(w);return (NECK.test(nw)?t:t2).includes(nw)});
+    if(ks.length)hits.push({r,n:ks.length,part:false,why:{p:[],w:ks.slice(0,3)}});
+  });
+
+  // 조사 없는 부위 표현 ("눈 간지러움", "배 아파요", "머리 아파요")도 부위로 인식:
+  // '부위 + 증상표현'이 바로 붙어 있으면(띄어쓰기 무시) 해당 부위로 본다
+  const PARTICLE=/(이|가|도|를|을|에서|에|은|는|의)$/;
+  const BARE_OK=new Set(["눈","코","귀","입","목","배","손","발","팔","등","턱","혀","머리","다리","얼굴","가슴","허리","어깨","피부","두피"]);
+  const stem=w=>{const n=norm(w);const s=n.replace(PARTICLE,"");return BARE_OK.has(s)?s:n};
+  const reEsc=s=>s.replace(/[.*+?^${}()|[\]\\]/g,"\\$&");
+  const bareInfo=e=>{
+    if(e._bare)return e._bare;
+    const bs=[...new Set(e.p.filter(p=>stem(p)!==norm(p)).map(stem))];
+    const alt=e.w.map(norm).map(reEsc).join("|");
+    e._bare=bs.map(b=>({b,rx:new RegExp(reEsc(b)+"(?:"+alt+")")}));
+    return e._bare;
+  };
+
   // 부위 × 통증표현 조합: 부위가 있고 통증/증상 표현이 함께 있어야 인정
   const grp=new Set(), consumed=[];
   const overlap=(a,b)=>a.includes(b)||b.includes(a);
   const run=e=>{
     const tt=e.x?t.replace(e.x,""):t;
-    let mw=e.w.map(norm).filter(w=>tt.includes(w));
-    if(!mw.length)return false;
-    const pm=e.p?e.p.filter(w=>tt.includes(norm(w))).length:1;
+    const mwo=e.w.filter(w=>tt.includes(norm(w)));
+    if(!mwo.length)return false;
+    let mw=mwo.map(norm);
+    let pm=1,parts=[];
+    if(e.p){
+      const pl=e.p.filter(w=>tt.includes(norm(w)));
+      pm=pl.length;parts=pl.map(stem);
+      if(!pm){
+        const ttb=tt.replace(MASK,"$1§");
+        const bl=bareInfo(e).filter(x=>x.rx.test(ttb));
+        if(bl.length){pm=1;parts=bl.map(x=>x.b)}
+      }
+    }
     if(!pm)return false;
     if(e.and&&!e.and.some(w=>tt.includes(norm(w))))return false;
     if(!e.p){
@@ -1112,7 +1244,7 @@ function analyze(text){
       mw=mw.filter(w=>!consumed.some(c=>overlap(c,w)));
       if(!mw.length)return false;
     }else consumed.push(...mw);
-    hits.push({r:{c:e.c,d:e.d,urgent:!!e.u,i:e.i},n:Math.max(1,(e.p?1+pm:1)+(e.b||0)),part:!!e.p});
+    hits.push({r:{c:e.c,d:e.d,urgent:!!e.u,i:e.i},n:Math.max(1,(e.p?1+pm:1)+(e.b||0)),part:!!e.p,why:{p:[...new Set(parts)].slice(0,2),w:mwo.slice(0,3)}});
     return true;
   };
   BODY.filter(e=>!e.fb&&e.p).forEach(e=>{if(run(e)&&e.g)grp.add(e.g)});
@@ -1126,7 +1258,7 @@ function analyze(text){
   // 진료과가 다른 쪽의 부분집합이면 같은 진료과로 보고 합침 ("정형외과" ⊂ "정형외과 / 신경외과")
   const toks=d=>d.split("/").map(s=>s.trim());
   const sub=(a,b)=>a.every(x=>b.includes(x));
-  const list=hits.map(({r,n,part})=>({...r,c:[...r.c],score:n,part:!!part,t:toks(r.d)}));
+  const list=hits.map(({r,n,part,why})=>({...r,c:[...r.c],score:n,part:!!part,why,t:toks(r.d)}));
   // 더 이상 합칠 게 없을 때까지 반복 (입력 순서와 상관없이 같은 결과가 나오도록)
   for(let again=true;again;){
     again=false;
@@ -1135,6 +1267,7 @@ function analyze(text){
       if(!(sub(A.t,B.t)||sub(B.t,A.t)))continue;
       A.score+=B.score;A.urgent=A.urgent||B.urgent;A.part=A.part||B.part;
       if(!A.i&&B.i)A.i=B.i;
+      if(B.why&&B.why.p.length&&!(A.why&&A.why.p.length))A.why=B.why;
       B.c.forEach(c=>{if(!A.c.includes(c))A.c.push(c)});
       if(B.t.length>A.t.length){A.d=B.d;A.t=B.t}
       list.splice(b,1);again=true;break outer;
@@ -1144,20 +1277,35 @@ function analyze(text){
 }
 const esc=s=>s.replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 
+// 이 진료과를 추천한 근거(부위·증상 표현)를 한 줄로 설명
+function whyText(r){
+  if(r.urgent)return "응급 가능성이 있는 증상이 포함되어 최우선으로 안내해요.";
+  const w=r.why;
+  if(!w||!w.w||!w.w.length)return "";
+  const ws=w.w.map(x=>"'"+x.trim()+"'").join("·");
+  return w.p&&w.p.length?"'"+w.p.join("·")+"' 부위 + "+ws+" 계열 표현 → 부위 기준으로 먼저 추천했어요.":ws+" 계열 표현을 기준으로 추천했어요.";
+}
 // 상세 안내(진료과 선택 가이드 · 주의사항 · 병원에 바로 가야 하는 신호) 렌더링
 function infoHtml(f,open){
-  let h=`<details class="info"${open?" open":""}><summary>📋 자세한 안내 보기</summary>`;
-  if(f.sum)h+=`<p>${esc(f.sum)}</p>`;
-  if(f.guide)h+=`<div class="gh">진료과 선택 가이드</div>`+f.guide.slice(0,3).map((g,k)=>`<div class="gi"><div class="gd">${esc(g.d)}<span class="gt r${k+1}">${k+1}순위</span></div><div><b>추천 상황</b> ${esc(g.when)}</div><div><b>주요 진료 내용</b> ${esc(g.what)}</div></div>`).join("");
-  if(f.extra)h+=`<div class="gh">${esc(f.extra.title)}</div>`+f.extra.rows.map(r=>`<div class="gi"><b>${esc(r[0])}</b> — ${esc(r[1])}</div>`).join("");
+  const li=t=>`<li><b>${esc(t[0])}</b>${t[1]?`<span>${esc(t[1])}</span>`:""}</li>`;
+  let h=`<details class="info"${open?" open":""}><summary>📋 자세한 안내 보기 (진료과 순위 · 응급 조치 · 주의사항 · 병원 신호)</summary>`;
+  if(f.sum)h+=`<div class="sumline">📝 ${esc(f.sum)}</div>`;
+  if(f.guide)h+=`<div class="sec blue inner"><div class="sec-h">🏥 진료과 선택 가이드</div><div class="sec-b"><div class="gg">`+
+    f.guide.slice(0,3).map((g,k)=>`<div class="gc r${k+1}"><h4><span class="gn r${k+1}">${k+1}</span>${esc(g.d)}<span class="rtag r${k+1}">${k+1}순위</span></h4><span class="lbl">추천 상황</span>${esc(g.when)}<span class="lbl">주요 진료 내용</span>${esc(g.what)}</div>`).join("")+
+    `</div></div></div>`;
+  if(f.extra)h+=`<div class="sec purple inner"><div class="sec-h">🧭 ${esc(f.extra.title)}</div><div class="sec-b"><ul class="rows">`+
+    f.extra.rows.map(r=>`<li><b>${esc(r[0])}</b><span>${esc(r[1])}</span></li>`).join("")+`</ul></div></div>`;
   if(f.aid&&f.aid.length){
     const urgent=f.aidTitle==="urgent";
-    h+=`<div class="gh ${urgent?"warn":"aid"}">${urgent?"🚑 응급 상황 — 119 도착 전 조치":"🩹 증상이 가볍다면 — 집에서 할 수 있는 응급 조치"}</div><ol class="aid">`+f.aid.map(t=>`<li><b>${esc(t[0])}</b>${t[1]?" — "+esc(t[1]):""}</li>`).join("")+`</ol>`;
-    if(!urgent)h+=`<p class="note">위 방법은 증상이 가벼울 때만 해당돼요. '바로 병원에 가야 하는 신호'가 하나라도 있으면 집에서 버티지 말고 진료를 받으세요.</p>`;
+    h+=`<div class="sec ${urgent?"red":"green"} inner"><div class="sec-h">${urgent?"🚑 응급 상황 — 119 도착 전 조치":"🩹 증상이 가볍다면 — 집에서 할 수 있는 응급 조치"}</div><div class="sec-b"><ol class="steps">`+
+      f.aid.map(li).join("")+`</ol>`+
+      (urgent?"":`<p class="note" style="margin:8px 0 0">위 방법은 증상이 가벼울 때만 해당돼요. 아래 빨간 박스의 신호가 하나라도 있으면 집에서 버티지 말고 진료를 받으세요.</p>`)+
+      `</div></div>`;
   }
-  if(f.tips)h+=`<div class="gh">병원 가기 전 주의사항</div><ul>`+f.tips.map(t=>`<li><b>${esc(t[0])}</b>${t[1]?" — "+esc(t[1]):""}</li>`).join("")+`</ul>`;
-  if(f.flags)h+=`<div class="gh warn">바로 병원에 가야 하는 신호</div><ul>`+f.flags.map(x=>`<li>${esc(x)}</li>`).join("")+`</ul>`;
-  h+=`<p class="note">${esc(f.ask||"증상이 시작된 시점과 통증·진물·출혈 정도를 함께 적어 다시 분석하면 더 정확해져요.")}</p>`;
+  if(f.tips)h+=`<div class="sec orange inner"><div class="sec-h">📝 병원 가기 전 주의사항</div><div class="sec-b"><ul class="ticks">`+f.tips.map(li).join("")+`</ul></div></div>`;
+  if(f.flags)h+=`<div class="sec red inner alertbox"><div class="sec-h">🚨 이런 신호가 있다면 즉시 병원에 가세요!</div><div class="sec-b"><ul class="flags">`+
+    f.flags.map(x=>`<li>${esc(x)}</li>`).join("")+`</ul></div></div>`;
+  h+=`<p class="note" style="margin:10px 0 0">${esc(f.ask||"증상이 시작된 시점과 통증·진물·출혈 정도를 함께 적어 다시 분석하면 더 정확해져요.")}</p>`;
   return h+`</details>`;
 }
 
@@ -1276,7 +1424,12 @@ const GENERIC_TIPS=[["증상 메모해 가기","언제 시작했고 어떻게 �
 const GENERIC_FLAGS="증상이 갑자기 심해지거나 의식 저하·호흡곤란·멈추지 않는 출혈이 생기면 즉시 119 또는 응급실로 가세요.";
 // 카드에 보여줄 안내: 응급 카드는 '가벼운 증상' 대신 '119 도착 전 조치'를 보여준다
 function cardInfo(r){
-  const f=r.i||autoInfo(r);
+  let f=r.i||autoInfo(r);
+  // 직접 쓴 안내에 응급 조치가 없으면 첫 진료과의 기본 조치로 채운다
+  if(!f.aid){
+    const d=DEPT[r.d.split("/")[0].replace(/(.*?)/g,"").trim()];
+    if(d&&d.aid)f={...f,aid:d.aid,aidTitle:"mild"};
+  }
   return r.urgent&&f.aidTitle!=="urgent"?{...f,aid:DEPT["응급실"].aid,aidTitle:"urgent"}:f;
 }
 // 상세 안내가 따로 없는 결과에 진료과 정보로 안내문을 만든다
@@ -1304,23 +1457,29 @@ $("go").onclick=()=>{
   const text=sym.value.trim(); if(!text)return;
   const res=analyze(text), box=$("result"); box.classList.remove("hide");
   if(!res.length){
-    box.innerHTML=`<div class="card"><b>증상을 정확히 파악하기 어려워요.</b><br>다른 표현으로 더 구체적으로 적어주세요. 잘 모르겠다면 <b>가정의학과/내과</b> 방문을 권해요.</div>`;
+    box.innerHTML=`<section class="sec teal"><div class="sec-h">🤔 증상을 정확히 파악하기 어려워요</div><div class="sec-b">다른 표현으로 더 구체적으로 적어주세요. 아픈 <b>부위</b>와 <b>느낌</b>(예: 쑤심, 쓰라림, 간지러움)을 함께 적으면 더 정확해요. 잘 모르겠다면 <b>가정의학과/내과</b> 방문을 권해요.</div></section>`;
     return;
   }
   const urgent=res.some(r=>r.urgent);
-  let html="";
-  if(urgent) html+=`<div class="card urgent"><b>⚠ 응급 가능성이 있는 증상이 포함돼 있어요.</b><br>증상이 갑자기 시작됐거나 심하다면 지체하지 말고 <b>119</b>에 연락하거나 가까운 응급실로 가세요.</div>`;
+  let html=`<div class="lead">💡 부위가 확인되면 그 부위의 진료과를 먼저, <b>1순위 · 2순위 · 3순위</b>로 보여드려요.</div>`;
+  if(urgent) html+=`<div class="banner"><span class="siren">🚨</span><div><div class="b1">응급 가능성이 있는 증상이 포함돼 있어요</div><div>증상이 갑자기 시작됐거나 심하다면 지체하지 말고 <b>119</b>에 연락하거나 가까운 응급실로 가세요.</div></div></div>`;
   res.slice(0,3).forEach((r,i)=>{
-    html+=`<div class="card"><div class="note">${i==0?"가장 관련 있는 진료과":"함께 고려할 진료과"}</div>
-      <div class="dept">${esc(r.d)}</div>
-      <div style="margin-top:8px"><span class="note">가능성 있는 질환 (참고용)</span><br>${r.c.map(c=>`<span class="tag">${esc(c)}</span>`).join("")}</div>${infoHtml(cardInfo(r),i==0)}</div>`;
+    const col=r.urgent?"red":["blue","green","purple"][i];
+    html+=`<section class="sec ${col}"><div class="sec-h"><span class="rkn">${i+1}순위</span><span>${esc(r.d)}</span><span class="sh-sub">${i==0?"가장 적합한 진료과":"함께 고려할 진료과"}</span></div>
+      <div class="sec-b">${whyText(r)?`<div class="why">💡 ${esc(whyText(r))}</div>`:""}
+      <div class="lbl2">가능성 있는 질환 (참고용)</div><div>${r.c.map(c=>`<span class="tag">${esc(c)}</span>`).join("")}</div>${infoHtml(cardInfo(r),i==0)}</div></section>`;
   });
+  html+=`<section class="sec blue"><div class="sec-h">✅ 한눈에 보는 핵심 정리</div><div class="sec-b"><ul class="checks">
+    <li><b>${esc(res[0].d)}</b>부터 확인하세요${res[1]?` — 이어서 ${res.slice(1,3).map(r=>esc(r.d)).join(" · ")}`:""}</li>
+    <li>${urgent?"응급 신호가 포함돼 있어요. 지체하지 말고 119 또는 응급실로 가세요.":"빨간 박스의 '즉시 병원' 신호가 하나라도 있으면 바로 진료받으세요."}</li>
+    <li>증상이 시작된 시점, 복용 중인 약, 알레르기·기저질환을 메모해 가세요.</li>
+    <li>이 결과는 참고용이에요. 정확한 진단은 의료진의 진찰과 검사가 필요해요.</li></ul></div></section>`;
   const deptStr=res[0].d;
-  html+=`<div class="card"><b>📍 반경 1km 이내 병원</b>
+  html+=`<section class="sec orange"><div class="sec-h">📍 반경 1km 이내 병원</div><div class="sec-b">
     <div class="note">'${esc(deptStr)}' 진료과 병원을 우선 표시해요. 위치 권한을 허용해 주세요.</div>
     <button id="loc">내 주변 1km 병원 보기</button>
     <div id="map" class="hide"></div>
-    <div id="hosp"></div></div>`;
+    <div id="hosp"></div></div></section>`;
   box.innerHTML=html;
   $("loc").onclick=()=>findHospitals(deptStr);
   box.scrollIntoView({behavior:"smooth"});
