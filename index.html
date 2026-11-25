@@ -6,142 +6,224 @@
 <title>증상 체크 · 진료과 안내</title>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.css">
 <style>
-  /* ── 디자인 토큰: 인포그래픽형 (파랑·초록·보라·주황·빨강 섹션, 노란 알약 강조) ── */
+  /* ── 건강정보 포털형 디자인: 흰 헤더, 큰 질문 + 알약 검색창, 얇은/굵은 이중 제목, 옅은 그림자 카드 ── */
   :root{
-    --bg1:#e8f3ff;--bg2:#fff7e6;--card:#fff;--soft:#f3f7fc;--text:#1b2733;--sub:#566574;--line:#d9e2ec;
-    --blue:#1f6fd0;--green:#23995a;--red:#e03131;--purple:#7048c9;--orange:#ec7f12;--teal:#13949a;
-    --pill:#ffe27a;--pilltx:#4a3600;--hero:rgba(255,255,255,.82);
+    --bg:#f4f6fb;--card:#fff;--soft:#f3f6fb;--text:#222b36;--sub:#5b6675;--line:#dfe5ee;
+    --navy:#0b2a63;--blue:#1d5fd1;--green:#1f9254;--red:#d9363e;--purple:#6b46c1;--orange:#e5760b;--teal:#0f8f94;
+    --pill:#ffe9a8;--pilltx:#5a4300;--shadow:0 2px 10px rgba(15,40,90,.07);--g1:#2f6bff;--g2:#7c4dff;--foot:#eef1f6;--chip:#e9eef7;--chiptx:#33415c;
   }
   @media (prefers-color-scheme:dark){:root{
-    --bg1:#0f1a28;--bg2:#1a1710;--card:#18212b;--soft:#202b37;--text:#e8eef5;--sub:#9fb0c0;--line:#2c3947;
-    --blue:#4c8fe8;--green:#3cb87a;--red:#ff6b6b;--purple:#9a7be0;--orange:#f59a3c;--teal:#2bbcc2;
-    --pill:#5a4a12;--pilltx:#ffe9a8;--hero:rgba(24,33,43,.82);
+    --bg:#0e1622;--card:#17212d;--soft:#1e2a38;--text:#e6edf5;--sub:#9fb0c2;--line:#2b3a4b;
+    --navy:#cfe0ff;--blue:#5b9bf5;--green:#3cb87a;--red:#ff6b6b;--purple:#a28be6;--orange:#f59a3c;--teal:#2bbcc2;
+    --pill:#5a4a12;--pilltx:#ffe9a8;--shadow:0 2px 10px rgba(0,0,0,.35);--g1:#2b57c9;--g2:#6a43d6;--foot:#111b27;--chip:#223044;--chiptx:#c9d6e8;
   }}
   *{box-sizing:border-box}
-  body{margin:0;background:linear-gradient(180deg,var(--bg1) 0,var(--bg2) 100%) fixed;color:var(--text);
-    font-family:"Malgun Gothic","Apple SD Gothic Neo","Noto Sans KR",system-ui,sans-serif;line-height:1.6}
-  main{max-width:980px;margin:0 auto;padding:18px 16px 60px}
+  html{scroll-behavior:smooth}
+  body{margin:0;background:var(--bg);color:var(--text);font-family:"Malgun Gothic","Apple SD Gothic Neo","Noto Sans KR",system-ui,sans-serif;line-height:1.65}
   a{color:var(--blue)}
   ul{padding-left:18px;margin:6px 0}
   .note{font-size:.82rem;color:var(--sub)}
   .hide{display:none}
+  .wrap{max-width:1080px;margin:0 auto;padding:0 20px}
+  main{max-width:1080px;margin:0 auto;padding:0 20px 40px}
 
-  /* ── 히어로: 큰 빨강·검정 제목 + 노란 알약 + 포스트잇 ── */
-  .hero{position:relative;overflow:hidden;background:var(--hero);border:2px solid var(--line);border-radius:24px;
-    padding:22px;margin-bottom:18px;display:grid;grid-template-columns:170px 1fr;gap:20px;align-items:center}
-  .hero::before{content:"";position:absolute;right:-90px;top:-110px;width:340px;height:340px;
-    background:radial-gradient(circle,rgba(255,200,70,.35),transparent 65%);pointer-events:none}
-  .hero>*{position:relative}
-  .hero-art{text-align:center}
-  .hero-art .big{font-size:88px;line-height:1;filter:drop-shadow(0 6px 8px rgba(0,0,0,.18))}
-  .sticker{display:inline-block;background:#fff3a0;color:#5b4a00;border-radius:6px;padding:7px 11px;font-size:.78rem;
-    font-weight:800;transform:rotate(-4deg);box-shadow:0 3px 8px rgba(0,0,0,.18);margin-top:10px}
-  .hero h1{margin:0;font-size:clamp(1.7rem,4.8vw,2.7rem);line-height:1.22;font-weight:900;letter-spacing:-.03em}
-  .hero h1 .red{color:var(--red)}
-  .pill{display:inline-block;background:var(--pill);color:var(--pilltx);border-radius:999px;padding:6px 18px;
-    font-weight:900;margin:12px 0 10px;font-size:clamp(.92rem,2.6vw,1.15rem)}
-  .hero p{margin:0;color:var(--sub);font-size:.93rem}
-  @media (max-width:640px){.hero{grid-template-columns:1fr;text-align:center;padding:18px}.hero-art .big{font-size:64px}}
+  /* ── 상단 헤더 ── */
+  .gnb{position:sticky;top:0;z-index:30;background:var(--card);border-bottom:1px solid var(--line)}
+  .gnb .wrap{display:flex;align-items:center;gap:12px;height:62px}
+  .brand{display:flex;align-items:center;gap:10px;text-decoration:none;color:var(--navy);font-weight:900;font-size:1.15rem;line-height:1.15}
+  .logo{width:38px;height:38px;border-radius:50%;background:color-mix(in srgb,var(--blue) 14%,var(--card));border:1px solid color-mix(in srgb,var(--blue) 35%,var(--line));display:grid;place-items:center;font-size:1.15rem;flex:none}
+  .brand small{display:block;font-weight:600;font-size:.72rem;color:var(--sub)}
+  .gnb nav{margin-left:auto;display:flex;gap:20px;font-size:.92rem;font-weight:800}
+  .gnb nav a{color:var(--text);text-decoration:none}
+  .gnb nav a:hover{color:var(--blue)}
+  .gnb nav a.em{color:var(--red)}
+  @media (max-width:560px){.gnb nav a.opt{display:none}.gnb nav{gap:14px}}
 
-  /* ── 섹션 카드: 색깔 헤더 바 + 같은 색 테두리 ── */
-  .sec{--c:var(--blue);background:var(--card);border:2px solid var(--c);border-radius:16px;overflow:hidden;margin:0 0 16px}
+  /* ── 홈: 큰 질문 + 알약 검색창 + 해시태그 ── */
+  .home{text-align:center;padding:38px 0 8px}
+  .ask{margin:0;font-size:clamp(1.55rem,4.6vw,2.4rem);font-weight:300;color:var(--navy);letter-spacing:-.03em;line-height:1.3}
+  .ask b{font-weight:900}
+  .ask-sub{margin:10px 0 24px;color:var(--sub)}
+  .searchbar{display:flex;align-items:center;max-width:740px;margin:0 auto;background:var(--card);border:2.5px solid var(--blue);border-radius:999px;padding:6px 6px 6px 24px;box-shadow:var(--shadow)}
+  .searchbar input{flex:1;min-width:0;border:0;background:transparent;color:var(--text);font:inherit;font-size:1.02rem;padding:10px 4px;outline:none}
+  .searchbar input::placeholder{color:var(--sub);opacity:.8}
+  .searchbar button{margin:0;border-radius:999px;padding:11px 26px;background:var(--blue);color:#fff;font:inherit;font-weight:900;border:0;cursor:pointer;flex:none}
+  .searchbar button:active{filter:brightness(.92)}
+  .chips{display:flex;flex-wrap:wrap;justify-content:center;gap:8px;margin:18px auto 0;max-width:840px}
+  .chip{border:0;background:var(--chip);color:var(--chiptx);border-radius:999px;padding:5px 15px;font:inherit;font-size:.88rem;font-weight:700;cursor:pointer;margin:0}
+  .chip:hover{background:color-mix(in srgb,var(--blue) 18%,var(--card));color:var(--blue)}
+
+  /* ── 이중 굵기 섹션 제목 ── */
+  .tt{font-size:1.45rem;font-weight:300;margin:36px 0 14px;color:var(--navy);letter-spacing:-.02em}
+  .tt b{font-weight:900}
+
+  /* ── 부위별 카드 ── */
+  .pgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(118px,1fr));gap:12px}
+  .pcard{margin:0;background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px 8px 12px;text-align:center;cursor:pointer;color:var(--text);font:inherit;font-weight:800;font-size:.93rem;box-shadow:var(--shadow);display:flex;flex-direction:column;align-items:center;gap:6px}
+  .pcard .em{font-size:1.9rem;line-height:1}
+  .pcard:hover{border-color:var(--blue);color:var(--blue)}
+  .pcard.on{border-color:var(--blue);color:var(--blue);background:color-mix(in srgb,var(--blue) 9%,var(--card))}
+
+  /* ── 그라데이션 안내 배너 ── */
+  .promo{display:grid;grid-template-columns:1.1fr 1fr;gap:20px;align-items:center;background:linear-gradient(135deg,var(--g1),var(--g2));border-radius:22px;padding:26px;color:#fff}
+  .promo .lab{display:inline-block;background:rgba(255,255,255,.22);border-radius:999px;padding:3px 14px;font-weight:800;font-size:.85rem;margin-bottom:10px}
+  .promo h3{margin:0;font-size:clamp(1.4rem,3.8vw,2.1rem);line-height:1.28;font-weight:900;letter-spacing:-.03em}
+  .promo .panel{background:var(--card);border-radius:16px;padding:6px 18px;color:var(--text)}
+  .promo .row{display:flex;gap:12px;align-items:center;padding:12px 0;border-bottom:1px dashed var(--line);font-size:.93rem}
+  .promo .row:last-child{border-bottom:0}
+  .promo .pl{flex:none;background:var(--blue);color:#fff;border-radius:999px;padding:3px 13px;font-weight:900;font-size:.82rem}
+  .promo .pl.r{background:var(--red)}
+  @media (max-width:700px){.promo{grid-template-columns:1fr;padding:20px}}
+
+  /* ── 하단 빠른 메뉴 ── */
+  .quick{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:4px;background:var(--card);border:1px solid var(--line);border-radius:18px;padding:10px 14px;box-shadow:var(--shadow);margin-top:34px}
+  .quick a{display:flex;align-items:center;gap:12px;padding:14px 10px;text-decoration:none;color:var(--text);font-weight:800}
+  .quick a span{font-size:1.7rem;line-height:1}
+  .quick a:hover{color:var(--blue)}
+  .guide{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:6px 20px 16px;box-shadow:var(--shadow);margin-top:6px}
+  .guide ol{list-style:none;counter-reset:g;padding:0;margin:0;display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px}
+  .guide li{counter-increment:g;position:relative;padding:4px 0 4px 40px;font-size:.92rem}
+  .guide li::before{content:counter(g);position:absolute;left:0;top:2px;width:28px;height:28px;border-radius:50%;background:var(--blue);color:#fff;font-weight:900;display:grid;place-items:center}
+  .guide li b{display:block;color:var(--navy)}
+
+  /* ── 푸터 ── */
+  .site-foot{background:var(--foot);border-top:1px solid var(--line);padding:22px 0 36px;font-size:.84rem;color:var(--sub);margin-top:40px}
+  .site-foot a{color:var(--blue);margin-right:18px;text-decoration:none;font-weight:800}
+  .site-foot p{margin:10px 0 0}
+  .site-foot .box{background:var(--card);border-radius:10px;padding:8px 14px;margin-top:14px;display:inline-block}
+
+  /* ── 결과 카드 (옅은 그림자의 흰 카드 + 색 포인트) ── */
+  .lead{background:color-mix(in srgb,var(--blue) 8%,var(--card));border:1px solid color-mix(in srgb,var(--blue) 30%,transparent);border-radius:12px;padding:9px 16px;margin:0 0 16px;font-size:.9rem;font-weight:700}
+  .sec{--c:var(--blue);background:var(--card);border:1px solid var(--line);border-radius:18px;overflow:hidden;margin:0 0 18px;box-shadow:var(--shadow)}
   .sec.blue{--c:var(--blue)}.sec.green{--c:var(--green)}.sec.red{--c:var(--red)}
   .sec.purple{--c:var(--purple)}.sec.orange{--c:var(--orange)}.sec.teal{--c:var(--teal)}
-  .sec-h{background:var(--c);color:#fff;font-weight:900;font-size:1.05rem;padding:9px 14px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
-  .sec-h .sh-sub{margin-left:auto;font-size:.78rem;font-weight:700;opacity:.92}
-  .rkn{background:#fff;color:var(--c);border-radius:999px;padding:0 12px;font-weight:900;font-size:.95rem}
-  .sec-b{padding:14px}
-  .sec.inner{margin:12px 0 0;border-width:2px}
-  .sec.inner .sec-h{font-size:.97rem;padding:7px 12px}
-
-  /* ── 입력 ── */
-  textarea{width:100%;min-height:92px;padding:12px;border-radius:12px;border:2px solid var(--line);background:var(--soft);color:var(--text);font:inherit;resize:vertical}
-  textarea:focus{outline:none;border-color:var(--blue)}
-  button{background:var(--blue);color:#fff;border:0;border-radius:12px;padding:11px 24px;font:inherit;font-weight:900;cursor:pointer;margin-top:10px;box-shadow:0 3px 0 rgba(0,0,0,.18)}
-  button:active{transform:translateY(2px);box-shadow:none}
-  .chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
-  .chip{background:var(--card);border:2px solid var(--line);color:var(--text);border-radius:999px;padding:3px 12px;font-size:.84rem;margin:0;font-weight:700;box-shadow:none}
-  .chip:hover{border-color:var(--blue);color:var(--blue)}
-
-  /* ── 결과 ── */
-  .lead{background:color-mix(in srgb,var(--blue) 10%,var(--card));border:2px dashed color-mix(in srgb,var(--blue) 45%,transparent);
-    border-radius:12px;padding:8px 14px;margin:0 0 14px;font-size:.9rem;font-weight:700}
-  .banner{display:flex;gap:14px;align-items:center;background:var(--red);color:#fff;border-radius:18px;padding:14px 18px;margin:0 0 16px;box-shadow:0 4px 14px rgba(224,49,49,.35)}
-  .banner .siren{font-size:2.4rem;line-height:1}
+  .sec-h{color:var(--navy);font-weight:900;font-size:1.08rem;padding:13px 18px;display:flex;align-items:center;gap:9px;flex-wrap:nowrap;border-bottom:1px solid var(--line)}
+  .sec-h::before{content:"";width:5px;align-self:stretch;min-height:1.15em;border-radius:3px;background:var(--c);flex:none}
+  .sec-h>span:not(.rkn):not(.sh-sub){min-width:0;flex:1 1 auto}
+  .sec-h .sh-sub{margin-left:auto;flex:none;font-size:.78rem;font-weight:700;color:var(--sub)}
+  .rkn{flex:none}
+  @media (max-width:480px){.sec-h .sh-sub{display:none}}
+  #result,.tt{scroll-margin-top:78px}
+  .rkn{background:var(--c);color:#fff;border-radius:999px;padding:1px 13px;font-weight:900;font-size:.88rem}
+  .sec-b{padding:16px 18px}
+  .sec.inner{margin:14px 0 0;border-radius:14px;box-shadow:none}
+  .sec.inner .sec-h{font-size:.97rem;padding:10px 14px}
+  .sec.red{border-color:color-mix(in srgb,var(--red) 55%,var(--line))}
+  .sec.red .sec-h{color:var(--red)}
+  .banner{display:flex;gap:14px;align-items:center;background:var(--red);color:#fff;border-radius:18px;padding:15px 20px;margin:0 0 18px;box-shadow:0 4px 14px rgba(217,54,62,.3)}
+  .banner .siren{font-size:2.3rem;line-height:1}
   .banner .b1{font-size:1.1rem;font-weight:900}
   .why{display:inline-block;background:var(--pill);color:var(--pilltx);border-radius:10px;padding:5px 12px;font-size:.85rem;font-weight:800;margin:0 0 10px}
   .lbl2{font-size:.78rem;font-weight:900;color:var(--sub);margin-bottom:2px}
-  .tag{display:inline-block;background:color-mix(in srgb,var(--c) 12%,var(--card));border:1px solid color-mix(in srgb,var(--c) 40%,transparent);
-    border-radius:999px;padding:2px 12px;margin:3px 4px 3px 0;font-size:.88rem;font-weight:700}
+  .tag{display:inline-block;background:color-mix(in srgb,var(--c) 11%,var(--card));border:1px solid color-mix(in srgb,var(--c) 38%,transparent);border-radius:999px;padding:2px 12px;margin:3px 4px 3px 0;font-size:.88rem;font-weight:700}
+  button{background:var(--blue);color:#fff;border:0;border-radius:12px;padding:11px 24px;font:inherit;font-weight:900;cursor:pointer;margin-top:10px}
 
   /* ── 상세 안내 ── */
-  .info{margin-top:12px}
-  .info>summary{cursor:pointer;list-style:none;background:var(--soft);border:2px dashed var(--line);border-radius:12px;padding:8px 14px;font-weight:900;color:var(--blue)}
+  .info{margin-top:14px}
+  .info>summary{cursor:pointer;list-style:none;background:var(--soft);border:1px solid var(--line);border-radius:12px;padding:10px 16px;font-weight:900;color:var(--blue)}
   .info>summary::-webkit-details-marker{display:none}
-  .info[open]>summary{border-style:solid;border-color:var(--blue)}
-  .sumline{background:color-mix(in srgb,var(--blue) 8%,var(--card));border-radius:12px;padding:10px 14px;margin:12px 0 0;font-size:.93rem}
-  .gg{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:10px}
-  .gc{border:2px solid var(--line);border-radius:12px;padding:10px 12px;background:var(--soft);font-size:.9rem}
-  .gc.r1{border-color:var(--blue)}.gc.r2{border-color:var(--green)}.gc.r3{border-color:var(--purple)}
-  .gc h4{margin:0 0 4px;font-size:1rem;display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+  .info[open]>summary{border-color:var(--blue)}
+  .sumline{background:color-mix(in srgb,var(--blue) 7%,var(--card));border-radius:12px;padding:11px 15px;margin:14px 0 0;font-size:.93rem}
+  .gg{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:12px}
+  .gc{border:1px solid var(--line);border-top:4px solid var(--line);border-radius:12px;padding:11px 13px;background:var(--soft);font-size:.9rem}
+  .gc.r1{border-top-color:var(--blue)}.gc.r2{border-top-color:var(--green)}.gc.r3{border-top-color:var(--purple)}
+  .gc h4{margin:0 0 4px;font-size:1rem;display:flex;align-items:center;gap:6px;flex-wrap:wrap;color:var(--navy)}
   .gn{display:inline-flex;width:26px;height:26px;border-radius:50%;color:#fff;align-items:center;justify-content:center;font-weight:900;font-size:.9rem;background:var(--blue)}
   .gn.r2{background:var(--green)}.gn.r3{background:var(--purple)}
   .rtag{font-size:.72rem;font-weight:900;color:#fff;background:var(--blue);border-radius:6px;padding:0 7px}
   .rtag.r2{background:var(--green)}.rtag.r3{background:var(--purple)}
   .lbl{display:block;font-size:.74rem;font-weight:900;color:var(--sub);margin-top:6px}
   ul.rows{list-style:none;padding:0;margin:0}
-  ul.rows li{display:grid;grid-template-columns:minmax(120px,32%) 1fr;gap:10px;padding:7px 0;border-bottom:1px dashed var(--line);font-size:.9rem}
+  ul.rows li{display:grid;grid-template-columns:minmax(120px,32%) 1fr;gap:10px;padding:8px 0;border-bottom:1px dashed var(--line);font-size:.9rem}
   ul.rows li:last-child{border-bottom:0}
-  ul.rows b{color:var(--purple)}
+  ul.rows b{color:var(--c)}
   @media (max-width:560px){ul.rows li{grid-template-columns:1fr;gap:2px}}
   ol.steps{list-style:none;padding:0;margin:0;counter-reset:s}
-  ol.steps li{counter-increment:s;position:relative;padding:7px 0 7px 38px;border-bottom:1px dashed var(--line)}
+  ol.steps li{counter-increment:s;position:relative;padding:8px 0 8px 40px;border-bottom:1px dashed var(--line)}
   ol.steps li:last-child{border-bottom:0}
-  ol.steps li::before{content:counter(s);position:absolute;left:0;top:8px;width:26px;height:26px;border-radius:50%;background:var(--c);color:#fff;font-weight:900;display:flex;align-items:center;justify-content:center;font-size:.9rem}
-  ol.steps li span{display:block;font-size:.88rem;color:var(--sub)}
+  ol.steps li::before{content:counter(s);position:absolute;left:0;top:9px;width:26px;height:26px;border-radius:50%;background:var(--c);color:#fff;font-weight:900;display:flex;align-items:center;justify-content:center;font-size:.9rem}
+  ol.steps li span,ul.ticks li span{display:block;font-size:.88rem;color:var(--sub)}
   ul.ticks,ul.flags,ul.checks{list-style:none;padding:0;margin:0}
   ul.ticks li,ul.flags li,ul.checks li{position:relative;padding:5px 0 5px 28px;font-size:.93rem}
-  ul.ticks li span{display:block;font-size:.87rem;color:var(--sub)}
   ul.ticks li::before{content:"✔";position:absolute;left:2px;top:5px;color:var(--orange);font-weight:900}
   ul.checks li::before{content:"✔";position:absolute;left:2px;top:5px;color:var(--blue);font-weight:900}
-  ul.flags li::before{content:"✓";position:absolute;left:0;top:7px;width:20px;height:20px;border:2px solid var(--red);border-radius:5px;
-    color:var(--red);font-weight:900;font-size:.78rem;display:flex;align-items:center;justify-content:center;background:var(--card)}
-  .alertbox{background:color-mix(in srgb,var(--red) 7%,var(--card))}
+  ul.flags li::before{content:"✓";position:absolute;left:0;top:7px;width:20px;height:20px;border:2px solid var(--red);border-radius:5px;color:var(--red);font-weight:900;font-size:.78rem;display:flex;align-items:center;justify-content:center;background:var(--card)}
+  .alertbox{background:color-mix(in srgb,var(--red) 6%,var(--card))}
 
   /* ── 지도·병원 ── */
-  #map{height:340px;border-radius:12px;margin-top:10px;border:2px solid var(--line)}
+  #map{height:340px;border-radius:12px;margin-top:10px;border:1px solid var(--line)}
   .hl{background:color-mix(in srgb,var(--blue) 14%,var(--card));border-radius:8px;padding:4px 8px}
   li.h{margin:6px 0;list-style:none;padding:4px 8px}
-  .foot{font-size:.82rem;color:var(--sub);text-align:center;margin:6px 0 0}
 </style>
 </head>
 <body>
-<main>
-  <header class="hero">
-    <div class="hero-art">
-      <div class="big">🩺</div>
-      <div class="sticker">갑자기 배가 아픈데…<br>어느 과로 가야 하지?</div>
-    </div>
-    <div>
-      <h1><span class="red">증상 체크,</span><br>어느 진료과로 가야 할까요?</h1>
-      <div class="pill">1순위 · 2순위 · 3순위 진료과와 근처 병원까지</div>
-      <p>아픈 부위와 증상을 적으면 가능성 있는 질환, 방문할 진료과, 집에서 할 수 있는 응급 조치, 바로 병원에 가야 하는 신호를 알려드려요. 눈이 간지러우면 피부과보다 안과처럼, 부위에 맞는 진료과를 먼저 보여드려요.</p>
-    </div>
-  </header>
+<header class="gnb">
+  <div class="wrap">
+    <a class="brand" href="#top"><span class="logo">🩺</span><span>증상 체크<small>진료과 안내</small></span></a>
+    <nav aria-label="바로가기">
+      <a class="opt" href="#parts">부위별 찾기</a>
+      <a class="opt" href="#guide">이용안내</a>
+      <a href="https://map.naver.com/p/search/%EA%B7%BC%EC%B2%98%20%EB%B3%91%EC%9B%90" target="_blank" rel="noopener">병원 찾기</a>
+      <a class="em" href="tel:119">응급 119</a>
+    </nav>
+  </div>
+</header>
 
-  <section class="sec blue">
-    <div class="sec-h">🔍 어떤 증상이 있나요?</div>
-    <div class="sec-b">
-      <textarea id="sym" aria-label="증상 입력" placeholder="예) 어제부터 열이 나고 목이 아프고 기침이 나요"></textarea>
-      <div class="chips" id="chips"></div>
-      <button id="go">분석하기</button>
-    </div>
+<main id="top">
+  <section class="home">
+    <h1 class="ask">🔍 <b>어느 진료과</b>로 가야 할까요?</h1>
+    <p class="ask-sub">아픈 부위와 증상을 적어 보세요. 1순위 · 2순위 · 3순위 진료과와 근처 병원을 알려드려요.</p>
+    <form class="searchbar" id="sform" onsubmit="return false">
+      <input id="sym" type="search" autocomplete="off" aria-label="증상 입력" placeholder="예) 눈 간지러움, 승모근이 아프고 팔이 저려요, 피부가 가렵고 갈증이 심해요">
+      <button id="go" type="submit">분석하기</button>
+    </form>
+    <div class="chips" id="chips"></div>
   </section>
 
   <div id="result" class="hide"></div>
 
-  <p class="foot">※ 이 서비스는 참고용 정보이며 의사의 진단을 대신하지 않습니다. 증상이 심하거나 걱정되면 반드시 의료기관을 방문하세요. 응급 상황에는 즉시 119에 연락하세요.</p>
+  <h2 class="tt" id="parts"><span>부위별</span> <b>증상 찾기</b></h2>
+  <div class="pgrid" id="pgrid"></div>
+
+  <h2 class="tt"><span>꼭 알아두세요</span> <b>응급 신호</b></h2>
+  <section class="promo">
+    <div>
+      <span class="lab">응급 신호 체크</span>
+      <h3>이런 증상은<br>기다리지 말고 119</h3>
+    </div>
+    <div class="panel">
+      <div class="row"><span class="pl r">즉시 119</span><span>의식이 흐리거나, 갑자기 한쪽이 마비되고 말이 어눌할 때</span></div>
+      <div class="row"><span class="pl r">즉시 119</span><span>가슴을 쥐어짜는 통증, 숨쉬기 힘듦, 식은땀이 있을 때</span></div>
+      <div class="row"><span class="pl">응급실</span><span>멈추지 않는 출혈, 심한 화상, 약물·이물을 삼켰을 때</span></div>
+    </div>
+  </section>
+
+  <nav class="quick" aria-label="빠른 메뉴">
+    <a href="https://map.naver.com/p/search/%EA%B7%BC%EC%B2%98%20%EB%B3%91%EC%9B%90" target="_blank" rel="noopener"><span>🏥</span>병원 찾기</a>
+    <a href="https://map.naver.com/p/search/%EA%B7%BC%EC%B2%98%20%EC%95%BD%EA%B5%AD" target="_blank" rel="noopener"><span>💊</span>약국 찾기</a>
+    <a href="tel:119"><span>🚑</span>응급 119</a>
+    <a href="#guide"><span>📖</span>이용안내</a>
+  </nav>
+
+  <h2 class="tt" id="guide"><span>이렇게</span> <b>이용하세요</b></h2>
+  <section class="guide">
+    <ol>
+      <li><b>증상을 입력해요</b>아픈 부위와 느낌(쑤심·쓰라림·가려움 등)을 함께 적어요. 조사나 띄어쓰기는 상관없어요.</li>
+      <li><b>1·2·3순위를 확인해요</b>부위에 맞는 진료과를 먼저 보여드리고, 함께 고려할 진료과도 알려드려요.</li>
+      <li><b>응급 신호를 살펴요</b>빨간 박스의 신호가 하나라도 있으면 바로 진료받으세요.</li>
+      <li><b>대학병원 예약 팁을 봐요</b>과 선택이 중요한 증상은 진료의뢰서·예약 요령을 함께 안내해요.</li>
+    </ol>
+  </section>
 </main>
+
+<footer class="site-foot" id="notice">
+  <div class="wrap">
+    <a href="#guide">이용안내</a><a href="#parts">부위별 증상 찾기</a><a href="tel:119">응급 119</a>
+    <p>본 사이트는 개인이 만든 <b>참고용 서비스</b>이며, 질병관리청 등 공공기관 및 의료기관과 관련이 없습니다.</p>
+    <p>지도·병원 정보는 무료 공개 지도(OpenStreetMap) 기반이라 실제와 다를 수 있어요.</p>
+    <div class="box">※ 이 서비스의 안내는 참고용이며 의사의 진단을 대신하지 않습니다. 증상이 심하거나 걱정되면 반드시 의료기관을 방문하고, 응급 상황에는 즉시 119에 연락하세요.</div>
+  </div>
+</footer>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js"></script>
 <script>
@@ -413,6 +495,26 @@ const RULES = [
   {k:["유산 경험","유산기","유산이 됐","유산했","유산할 것","유산 증상","습관성 유산","계류유산","자연유산","임신 중 하혈","임신 초기 출혈","분만","출산이 임박","진통이 시작","진통 간격","기형아","양수 검사","임신성 당뇨","임신 중독","임신중독","임신성 고혈압","입덧이 심","입덧이 너무","임신 중 붓","임신 중 두통","임신 중 어지"], c:["유산 징후·임신 합병증","분만·진통","임신 중 고혈압·당뇨","입덧(임신 오조)"], d:"산부인과"},
   {k:["미레나","자궁내 장치","피임 시술","임플라논","피임 주사"], c:["미레나·자궁내 장치 상담","피임 방법 상담","월경과다 치료"], d:"산부인과"},
   {k:["아이가 38","아이 열이 38","애가 38","아기가 38","소아 38","어린이 열"], c:["소아 발열(감염 평가)","중이염","편도염","요로감염"], d:"소아청소년과 / 응급실"},
+
+  // ── 신경과 / 신경외과 / 정형외과 구분이 중요한 증상 (대학병원 예약 시 과 선택) ──
+  {keep:true,k:["갑자기 한쪽 얼굴","한쪽 얼굴이 갑자기","갑자기 얼굴이 저","한쪽 팔다리가 갑자기","갑자기 한쪽이 저","한쪽 몸이 저","갑자기 팔이 저","갑자기 다리가 저","갑자기 손이 저","갑자기 감각이 없","갑자기 힘이 빠지고 저"], c:["뇌졸중 가능성","일과성 뇌허혈발작(TIA)","뇌 질환"], d:"응급실 / 신경과", urgent:true},
+  {k:["갑자기 복시","갑자기 물체가 두 개로","갑자기 두 개로 보"], c:["뇌졸중 가능성","뇌신경 마비","망막·안구 질환"], d:"응급실 / 신경과", urgent:true},
+  {k:["디스크","추간판","탈출증","협착증","척추관","척추 협착","척추전방전위","척추분리","허리 디스크","허리디스크"], c:["허리 디스크(추간판탈출증)","척추관 협착증","척추전방전위증"], d:"신경외과 / 정형외과"},
+  {k:["목 디스크","목디스크","경추 디스크","경추디스크","경추 협착","경추협착","거북목 디스크"], c:["경추 디스크","경추 척수증·신경근병증","거북목 증후군"], d:"신경외과 / 정형외과"},
+  {k:["척추 수술","디스크 수술","협착증 수술","허리 수술","목 수술","신경 수술"], c:["척추 수술 상담","신경 압박 평가"], d:"신경외과 / 정형외과"},
+  {keep:true,k:["손목터널","손목 터널","팔목터널","수근관","새끼손가락 저","약지 저","팔꿈치 안쪽","팔꿈치 저","주관증후군","척골신경"], c:["손목터널증후군","주관증후군(척골신경 포착)","경추 신경근병증"], d:"정형외과 / 신경과"},
+  {keep:true,k:["발바닥 저","발바닥이 저","발가락 사이 저","앞꿈치 저","족근관","지간신경종"], c:["족근관증후군","지간신경종","말초신경병증"], d:"정형외과 / 신경과"},
+  {k:["말초신경","신경병증","당뇨병성 신경","장갑 낀 듯","양말 신은 듯","양말을 신은","장갑을 낀","양손 끝","양발 끝"], c:["말초신경병증","당뇨병성 신경병증","비타민 B12 결핍","알코올성 신경병증"], d:"신경과 / 내분비내과"},
+  {k:["삼차신경","얼굴 한쪽이 찌릿","세수할 때 찌릿","양치할 때 찌릿","씹을 때 얼굴 찌릿","전기가 오는 듯한 얼굴","얼굴에 전기"], c:["삼차신경통"], d:"신경과 / 신경외과"},
+  {k:["안면경련","얼굴이 씰룩","한쪽 눈 밑이 계속 떨","눈과 입이 같이 떨"], c:["편측 안면경련"], d:"신경과 / 신경외과"},
+  {k:["복시","물체가 두 개로","사물이 두 개로","물건이 두 개로","이중으로 보"], c:["복시(뇌신경 마비·근무력증)","안구운동 이상","안과 질환"], d:"안과 / 신경과"},
+  {k:["삼키기 어려","음식이 안 넘어","삼킬 때 걸려","연하곤란","삼킬 때 아"], c:["식도 질환","인후·후두 질환","신경 질환(연하장애)"], d:"이비인후과 / 소화기내과 / 신경과"},
+  {k:["뇌졸중 예방","뇌혈관","뇌동맥류","뇌 MRI","뇌 검사","머리 CT","뇌 검진"], c:["뇌혈관 질환 검진","뇌동맥류 평가"], d:"신경과 / 신경외과"},
+  {k:["수두증","걸음이 느려지고","걸음이 느려","종종걸음"], c:["정상압수두증","파킨슨병","치매"], d:"신경과 / 신경외과"},
+
+  // ── 부위·장기 이름 관련 응급 ──
+  {keep:true,k:["심장이 아","심장이 쑤","심장이 조이","심장이 답답","심장 통증","심장이 터질","심장이 멎"], c:["협심증·심근경색 가능성","부정맥"], d:"응급실 / 순환기내과(심장내과)", urgent:true},
+  {k:["한쪽 다리가 붓고 아","한쪽 종아리가 붓고 아","한쪽 다리가 붓고 뜨거","한쪽 다리가 붓고 붉","한쪽 다리가 갑자기 붓"], c:["심부정맥혈전증 가능","폐색전증 위험"], d:"응급실 / 혈관외과", urgent:true},
 ];
 
 // ── 상세 안내 (진료과 선택 가이드 / 병원 가기 전 주의사항 / 바로 병원에 가야 하는 신호) ──
@@ -1184,12 +1286,499 @@ BODY.push(
 // 어지럼: 자세 변화와 관련된 어지럼(이석증)
 RULES.push({k:["이석증","돌아누울 때 어지","머리를 돌리면 어지","누웠다 일어날 때 어지","자세 바꿀 때 어지","고개를 돌리면 어지"],c:["이석증(양성 돌발성 체위 현훈)","전정신경염","메니에르병"],d:"이비인후과 / 신경과"});
 
-const CHIPS=["열","기침","목 아픔","콧물","두통","어지러움","복통","설사","속쓰림","변비","허리 통증","무릎 통증","어깨 통증","피부 가려움","눈 충혈","귀 통증","치통","소변 불편","생리통","불면","피로","두근거림","입안 쓰라림","목 뻣뻣함","피부 까짐","무릎 시림","온몸 쑤심","눈 따가움","소변볼 때 쓰라림","발뒤꿈치 갈라짐"];
+// ═══ 저림(감각 이상): 정형외과 / 신경외과(척추·말초신경) / 신경과 / 내분비내과 구분 + 대학병원 예약 시 과 선택 팁 ═══
+// 기존의 뭉뚱그린 저림 규칙을 걷어내고(이 블록의 부위별 규칙으로 대체)
+const NUMBW=/저(?:림|리|려|린|릿)|(?:손|발|팔)이\s?저|다리가\s?저|감각\s?이\s?(?:둔|없)|감각\s?저하|찌릿찌릿|무감각/;
+RULES.forEach(r=>{if(!r.keep)r.k=r.k.filter(w=>!NUMBW.test(w))});
+BODY.forEach(e=>{e.w=e.w.filter(w=>!NUMBW.test(w));if(e.and)e.and=e.and.filter(w=>!NUMBW.test(w))});
+
+// 과별 역할 비교 + 대학병원 예약 팁 (과 선택이 중요한 증상에 공통으로 붙임)
+const ROLE={
+  ortho:["정형외과","뼈·관절·인대·근육·척추를 다루는 과(수술·비수술). 병원마다 '수부(손)·족부(발)·척추' 클리닉으로 나뉘어요."],
+  nsurg:["신경외과","뇌·척수·말초신경 중 수술이 필요할 수 있는 질환(뇌출혈·뇌종양·디스크·척추관 협착). '척추신경외과'는 신경외과의 척추 진료 파트예요."],
+  neuro:["신경과","약물·검사로 진단·치료하는 신경 질환(뇌졸중·치매·두통·어지럼·말초신경병증·간질·파킨슨). 근전도·신경전도 검사를 해요."],
+  rehab:["재활의학과","수술하지 않는 통증·기능 회복(도수·운동치료·신경 차단·보조기)."],
+  pain:["마취통증의학과","주사·신경 차단으로 하는 통증 치료(대상포진 후 통증, 척추 주사 등)."],
+  endo:["내분비내과","당뇨·갑상선·비타민 결핍처럼 몸속 대사 문제가 저림의 원인일 때."],
+  ent:["이비인후과","귀·코·목 질환과 어지럼(이석증·메니에르병), 갑상선·두경부 수술 평가."],
+  eye:["안과","눈 통증·시력·복시·안구 문제."],
+  card:["순환기내과","두근거림·가슴 통증·실신 전조처럼 심장 문제가 의심될 때."],
+  im:["내과 / 가정의학과","빈혈·혈압·감염 등 전신 원인 확인, 어느 과인지 애매할 때의 1차 진료."],
+  thy:["내분비내과(갑상선)","갑상선 기능(호르몬) 이상과 약물 치료."],
+  thyS:["외과·이비인후과(두경부)","갑상선 결절·암의 수술 평가와 수술."]
+};
+const BOOK_ROWS=[
+  ["진료의뢰서 챙기기","대학병원(상급종합병원)은 보통 동네 병·의원의 진료의뢰서가 있으면 접수·예약이 수월하고, 없으면 진료비 부담이 커질 수 있어요. 의뢰서에 희망 진료과를 적어 달라고 요청해 보세요."],
+  ["척추는 어느 과로?","척추 진료는 정형외과와 신경외과 모두 해요. 병원 홈페이지의 '척추센터/클리닉' 소개에서 소속 과와 의료진 전문 분야(경추·요추, 수술·비수술)를 확인하세요."],
+  ["예약 전에 문의하기","병원 콜센터·앱에 '어느 부위가 어떻게 아프거나 저린지'를 말하면 알맞은 과·의료진을 안내해 줘요."],
+  ["검사 결과 지참","MRI·CT·근전도·혈액검사 결과(영상 CD 포함)가 있으면 진료가 빨라져요."],
+  ["과를 잘못 골랐다면","같은 병원 안에서 진료의뢰(협진)로 다른 과에 연결되는 경우가 많아요. 다시 접수하기 전에 진료 때 의료진에게 먼저 물어보세요."],
+  ["응급 신호가 있으면 예약하지 말고","갑작스러운 마비·말 어눌함, 대소변 장애 같은 신호는 예약을 기다리지 말고 응급실로 가세요."]
+];
+const bookOf=(roles)=>[{title:"🧩 과별로 무엇이 달라요?",rows:roles.map(k=>ROLE[k])},{title:"🏛️ 대학병원 예약할 때 과 고르는 팁",rows:BOOK_ROWS}];
+
+const NUMB_ITEMS={
+  ortho:{d:"정형외과",when:"손목·팔꿈치·발목 등 관절·인대 주변에서 신경이 눌려 저릴 때(손목터널증후군 등), 척추 수술까지 고려할 때",what:"X선·초음파·MRI로 신경 압박 부위 확인, 보조기·주사·수술 치료"},
+  nsurg:{d:"신경외과(척추·말초신경)",when:"목·허리 디스크, 척추관 협착증처럼 신경 압박으로 팔·다리가 저리고 힘이 빠질 때, 수술이 필요할 수 있을 때",what:"MRI·CT로 척추 신경 압박 평가, 신경 차단술·수술 치료"},
+  neuro:{d:"신경과",when:"양손·양발 끝이 저리거나 어지럼·말이 어눌함이 함께 있을 때, 당뇨·음주·항암 후 말초신경병증이 의심될 때",what:"근전도·신경전도 검사, 뇌 MRI, 약물 치료"},
+  endo:{d:"내분비내과",when:"당뇨·갑상선 이상·비타민 B12 결핍이 의심되어 저림의 원인이 대사 문제일 때",what:"혈당·갑상선·비타민 검사와 약물 조절"},
+  rehab:{d:"재활의학과 / 마취통증의학과",when:"수술까지는 필요 없고 통증·저림을 비수술로 관리하고 싶을 때",what:"도수·운동치료, 신경 차단 주사, 보조기"}
+};
+const NUMB_WHERE=[
+  ["손·손가락(밤·새벽에 심함, 엄지~중지)","손목터널증후군 → 정형외과(수부) 또는 신경과(근전도) 또는 신경외과(말초신경)"],
+  ["새끼손가락·약지, 팔꿈치 안쪽","팔꿈치 신경 압박(주관증후군) → 정형외과 또는 신경과"],
+  ["목·어깨 통증 + 팔·손 저림","경추 디스크·협착 → 신경외과 또는 정형외과(척추)"],
+  ["허리·엉덩이 통증 + 다리 저림(걸으면 심해지고 쉬면 나아짐)","요추 디스크·척추관 협착 → 신경외과 또는 정형외과(척추)"],
+  ["양손·양발 끝이 대칭으로 저림(장갑·양말 낀 느낌)","말초신경병증(당뇨·음주·비타민 결핍·항암) → 신경과, 원인에 따라 내분비내과"],
+  ["발바닥·발가락 저림","족근관증후군·지간신경종 → 정형외과(족부) 또는 신경과, 허리 통증이 있으면 신경외과"],
+  ["얼굴·입 주위 저림","삼차신경·안면신경 문제 → 신경과(치과 치료 후라면 치과), 갑자기 한쪽이면 즉시 응급실"],
+  ["한쪽 팔·다리가 갑자기 저리고 힘이 빠짐, 말이 어눌","뇌졸중 가능 → 즉시 119·응급실(신경과)"],
+  ["다리 힘 빠짐 + 대소변 장애 + 사타구니 감각 저하","마미증후군 가능 → 즉시 응급실(신경외과)"],
+  ["불안·과호흡 때 손발·입 주위 저림","과호흡 증후군 → 정신건강의학과·내과, 반복되면 신경과"]
+];
+function numbInfo(order){
+  return {
+    sum:"저림은 '어디가, 어떻게' 저린지에 따라 가야 할 과가 달라요. 정형외과(뼈·관절·인대·척추), 신경외과(수술이 필요할 수 있는 뇌·척추·말초신경), 신경과(약·검사로 진단하는 신경 질환)가 서로 겹쳐서, 특히 대학병원 예약 때는 과 선택이 중요해요.",
+    guide:order.map(k=>NUMB_ITEMS[k]),
+    extra:{title:"저림 부위·상황별로 보면 어느 과?",rows:NUMB_WHERE},
+    book:bookOf(["ortho","nsurg","neuro","rehab","endo"]),
+    aid:[
+      ["저림을 일으키는 자세 바꾸기","손목을 꺾거나 팔을 베고 자는 자세, 오래 앉아 다리를 꼬는 자세를 피하세요."],
+      ["가볍게 움직이고 스트레칭","저린 부위를 천천히 털고 풀어 혈액순환을 도우세요. 억지로 세게 꺾지는 마세요."],
+      ["따뜻한 찜질","근육이 뭉쳐 저릴 때 도움이 돼요. 감각이 둔하면 화상에 주의하세요."],
+      ["밤에 손목 보호대","손목터널이 의심되면 밤에 손목을 편 자세로 고정하면 도움이 될 수 있어요."],
+      ["원인 관리","당뇨·음주·카페인을 조절하고 규칙적으로 식사하세요. 비타민제를 임의로 과다 복용하지 마세요."]
+    ],
+    tips:[
+      ["어디가·어떻게 저린지 기록","어느 손가락·부위인지, 양쪽/한쪽, 밤/낮, 자세와의 관계, 점점 심해지는지 적어 가세요."],
+      ["검사 결과 가져가기","MRI·근전도·혈액검사 결과가 있으면 진료가 빨라져요."]
+    ],
+    flags:[
+      "갑자기 한쪽 팔·다리·얼굴이 저리고 힘이 빠지거나 말이 어눌한 경우(즉시 119)",
+      "다리 힘이 빠지거나 대소변을 보기 어렵고 사타구니 감각이 둔한 경우(응급)",
+      "저림과 함께 근력이 점점 약해져 물건을 자꾸 떨어뜨리거나 걸음이 불안정한 경우",
+      "심한 목·허리 통증과 열이 함께 있는 경우",
+      "넘어지거나 부딪힌 뒤 갑자기 시작된 저림",
+      "양쪽 다리가 함께 저리면서 걷기 힘든 경우"
+    ],
+    ask:"어디(손·팔·다리·발·얼굴)가, 어떻게(밤에·걸을 때·양쪽·한쪽) 저린지 함께 적어 다시 분석하면 진료과가 더 정확해져요."
+  };
+}
+Object.assign(INFO,{
+  numbOrtho:numbInfo(["ortho","neuro","nsurg"]),
+  numbNsurg:numbInfo(["nsurg","ortho","neuro"]),
+  numbNeuro:numbInfo(["neuro","endo","ortho"]),
+  numbEndo:numbInfo(["endo","neuro","ortho"]),
+  thyroid:{
+    sum:"갑상선 질환은 호르몬 기능 이상은 내분비내과, 결절·암의 수술 평가는 외과·이비인후과(두경부)로 나뉘어요. 대학병원에서는 '내분비내과'와 '갑상선암센터(외과·이비인후과)'로 따로 운영하는 경우가 많아요.",
+    guide:[
+      {d:"내분비내과",when:"갑상선 기능(항진·저하) 이상이 의심되거나 결절을 처음 확인할 때",what:"갑상선 호르몬 검사, 초음파, 약물 치료"},
+      {d:"이비인후과",when:"목 앞이 부어 보이거나 쉰 목소리·삼킴 불편이 있을 때, 두경부 수술 평가",what:"목 초음파·세침검사, 수술 평가"},
+      {d:"외과",when:"결절이 크거나 암이 의심되어 수술 상담이 필요할 때",what:"갑상선 수술 평가와 수술"}],
+    book:bookOf(["thy","ent","thyS","im"]),
+    tips:[["갑상선 검사 결과 가져가기","초음파·혈액검사 결과가 있으면 진료가 빨라져요."]],
+    flags:["삼키기 어렵거나 숨쉬기 힘든 경우","혹이 빠르게 커지거나 단단한 경우","쉰 목소리가 2주 이상 계속되는 경우","가족 중 갑상선암 병력이 있는 경우(검진 권장)"]
+  }
+});
+INFO.backache.book=bookOf(["ortho","nsurg","rehab","pain","neuro"]);
+INFO.headache.book=bookOf(["neuro","nsurg","ent","eye","im"]);
+INFO.vagal.book=bookOf(["neuro","ent","card","im"]);
+attachRule(r=>r.k.includes("갑상선 결절")&&r.k.includes("갑상선염"),"thyroid");
+(()=>{const r=RULES.find(r=>r.k.includes("갑상선 결절")&&r.k.includes("갑상선염"));if(r)r.d="내분비내과 / 이비인후과 / 외과"})();
+attachRule(r=>r.k.includes("추간판"),"backache");
+attachRule(r=>r.k.includes("목디스크"),"backache");
+
+// ── 저림 부위별 규칙 (기본 순서는 b 값, 동반 증상 modifier가 순서를 바꿈) ──
+const NK=/(?<![손발팔눈양호제과종항안])목/;                         // '손목·제목'이 아닌 '목'
+const NUMB=["저리","저려","저림","저린","저릿","감각이 둔","감각이둔","감각 저하","감각저하","감각이 없","감각이없","찌릿찌릿","얼얼","무감각","바늘로 찌르","전기가 오"];
+const NEUROPW=["양손","양발","양쪽","두 손","두손","두 발","두발","양손 끝","양발 끝","양손끝","양발끝","장갑","양말","대칭","술을","음주","알코올","항암","화학요법","비타민","B12","b12","당뇨","혈당"];
+const DMW=["당뇨","혈당","갑상선","비타민","B12","b12","당화"];
+const CARPALW=["밤에","새벽","자다가","컴퓨터","마우스","키보드","반복 작업","손목을 꺾","손목터널","엄지","검지","중지","설거지","육아","한 손"];
+const NECKCTX=["어깨","고개","경추","거북목","목디스크","목 디스크","팔꿈치","팔 전체"];
+const byDept={"정형외과":"numbOrtho","신경외과":"numbNsurg","신경과":"numbNeuro","내분비내과":"numbEndo"};
+const numb=(p,x,defs,mods)=>{
+  defs.forEach(([d,b,c])=>BODY.push({g:"numb",p,w:NUMB,x,b,d,c,i:INFO[byDept[d]]}));
+  (mods||[]).forEach(m=>BODY.push({g:"numb",p,w:m.w||[],rw:m.rw,rwl:m.rwl,and:NUMB,x,b:m.b,d:m.d,c:m.c,i:INFO[byDept[m.d]]}));
+};
+const C={
+  oHand:["손목터널증후군","방아쇠수지·건초염","팔꿈치·경추 신경 압박"],
+  nHand:["말초신경병증","손목터널증후군(근전도 검사)","뇌혈관 질환 감별"],
+  sCerv:["경추 디스크(목→팔 방사통)","경추 협착증","말초신경 포착(수술)"],
+  sLum:["허리 디스크(추간판탈출증)","척추관 협착증","좌골신경통"],
+  oLum:["허리 디스크·협착증(척추 수술 평가)","좌골신경통","고관절·천장관절 문제"],
+  nLeg:["말초신경병증","감각이상성 대퇴신경통","뇌·척수 질환 감별"],
+  oFoot:["족근관증후군","지간신경종(모튼 신경종)","무지외반증·발 신경 압박"],
+  nFoot:["말초신경병증","당뇨병성 신경병증","요추 신경 압박 감별"],
+  endo:["당뇨병성 신경병증","갑상선 이상","비타민 B12 결핍"]
+};
+// 손·손가락: 정형외과(수부) → 신경과(근전도) → 신경외과
+numb(["손이","손도","손을","손가락","손끝","손바닥","손등","손목","엄지손가락","새끼손가락","약지","중지","검지"],/일손이/g,
+  [["정형외과",2,C.oHand],["신경과",1,C.nHand],["신경외과",0,C.sCerv]],
+  [{rw:NK,rwl:"목",w:NECKCTX,d:"신경외과",b:5,c:C.sCerv},{rw:NK,rwl:"목",w:NECKCTX,d:"정형외과",b:1,c:C.oHand},
+   {w:NEUROPW,d:"신경과",b:5,c:C.nHand},{w:DMW,d:"내분비내과",b:3,c:C.endo},
+   {w:CARPALW,d:"정형외과",b:3,c:C.oHand},{w:CARPALW,d:"신경과",b:1,c:C.nHand}]);
+// 팔·어깨: 신경외과/정형외과(경추) → 신경과
+numb(["팔이","팔도","팔을","팔뚝","팔꿈치","어깨","겨드랑이","상완"],null,
+  [["신경외과",2,C.sCerv],["정형외과",2,["경추 디스크·어깨 질환","팔꿈치 신경 압박(주관증후군)","흉곽출구증후군"]],["신경과",1,C.nHand]],
+  [{w:["팔꿈치","새끼손가락","약지","척골"],d:"정형외과",b:3,c:["팔꿈치 신경 압박(주관증후군)"]},{w:["팔꿈치","새끼손가락","약지","척골"],d:"신경과",b:2,c:C.nHand},
+   {rw:NK,rwl:"목",w:["고개","경추","거북목","목디스크","목 디스크","뒷목"],d:"신경외과",b:5,c:C.sCerv},{rw:NK,rwl:"목",w:["고개","경추","거북목","목디스크","목 디스크","뒷목"],d:"정형외과",b:1,c:["경추 디스크","거북목 증후군"]},
+   {w:NEUROPW,d:"신경과",b:5,c:C.nHand},{w:DMW,d:"내분비내과",b:3,c:C.endo}]);
+// 목 → 팔 방사
+numb(["뒷목","목덜미","목뼈","경추","목 디스크","목디스크"],null,
+  [["신경외과",3,C.sCerv],["정형외과",3,["경추 디스크","거북목 증후군","경추 염좌"]],["신경과",1,C.nHand]]);
+// 허리·엉덩이·다리: 신경외과·정형외과(척추) → 신경과
+numb(["허리","엉덩이","다리가","다리도","다리를","허벅지","종아리","정강이","엉치","척추","장딴지","꼬리뼈","등이","등을"],null,
+  [["신경외과",2,C.sLum],["정형외과",2,C.oLum],["신경과",0,C.nLeg]],
+  [{w:NEUROPW.concat(["양쪽 다리","양다리","두 다리"]),d:"신경과",b:5,c:C.nLeg},{w:DMW,d:"내분비내과",b:3,c:C.endo},
+   {w:["힘이 빠","힘이 안","힘이 없","발목에 힘","발이 처","걷기 힘","걸을 수 없","다리가 끌"],d:"신경외과",b:3,c:["진행성 신경 압박(수술 평가)","척수·마미 질환 감별"]},
+   {w:["걸으면","걷다가","오래 걸으","앉으면 나아","쉬면 나아","허리를 숙이면 나아"],d:"신경외과",b:2,c:["척추관 협착증(보행 시 저림·쉬면 호전)"]},
+   {w:["걸으면","걷다가","오래 걸으","앉으면 나아","쉬면 나아","허리를 숙이면 나아"],d:"정형외과",b:2,c:["척추관 협착증(척추 수술 평가)"]}]);
+// 발·발가락: 정형외과(족부)·신경과 → 신경외과(허리 원인이면 1순위)
+numb(["발이","발도","발을","발바닥","발가락","발끝","발등","발뒤꿈치","엄지발가락","발목"],BAL,
+  [["정형외과",2,C.oFoot],["신경과",2,C.nFoot],["신경외과",0,C.sLum]],
+  [{w:["허리","디스크","엉덩이","허벅지","종아리","다리 뒤"],d:"신경외과",b:5,c:C.sLum},
+   {w:NEUROPW,d:"신경과",b:5,c:C.nFoot},{w:DMW,d:"내분비내과",b:3,c:C.endo},
+   {w:["신발","하이힐","앞꿈치","발가락 사이","오래 서","걷고 나면","발바닥이 타"],d:"정형외과",b:3,c:C.oFoot}]);
+// 얼굴·입 주위
+numb(["얼굴","입술","혀가","혀끝","뺨","볼이","턱이","입 주위","입주위","코끝","귀 주위","이마"],null,
+  [["신경과",3,["삼차신경통·안면 신경 질환","뇌혈관 질환 감별","편두통 전조"]],["신경외과",0,["삼차신경통(미세혈관감압술)","뇌종양·뇌혈관 질환 감별"]]]);
+BODY.push({g:"numb",p:["입술","턱이","잇몸","혀가","혀끝","입 주위","입주위","치아","이가"],w:NUMB,b:2,d:"치과",c:["치과 치료·마취 후 신경 손상","삼차신경 분지 압박"]});
+BODY.push({g:"numb",p:["입술","턱이","잇몸","혀가","혀끝","입 주위","입주위","치아","이가"],w:["치과","치료 후","마취","임플란트","발치","사랑니","신경치료","크라운","교정"],and:NUMB,b:6,d:"치과",c:["치과 치료·마취 후 신경 손상","임플란트·발치 후 하치조신경 손상"]});
+// 온몸·손발·팔다리 전체
+numb(["온몸","전신","몸이","몸 전체","팔다리","사지","양팔","양다리","손발"],null,
+  [["신경과",3,["말초신경병증","뇌·척수 질환 감별","다발성 경화증 등 신경 질환"]]],
+  [{w:DMW,d:"내분비내과",b:4,c:C.endo}]);
+BODY.push({g:"numb",p:["온몸","전신","몸이","몸 전체","팔다리","사지","양팔","양다리","손발"],w:NUMB,b:1,d:"내과 / 가정의학과",c:["빈혈·전해질 이상","갑상선·당뇨 등 대사 이상","비타민 B12 결핍"]});
+BODY.push({g:"numb",p:["온몸","전신","몸이","몸 전체","팔다리","사지","양팔","양다리","손발","입 주위","입주위","손이","발이","입술"],w:["불안","숨이 가쁘","과호흡","긴장","공황","스트레스","숨이 차"],and:NUMB,b:5,d:"정신건강의학과 / 내과",c:["과호흡 증후군","불안·공황장애"]});
+// 응급: 저림 + 대소변 장애·사타구니 감각·다리 힘 빠짐 (마미증후군 가능성)
+BODY.push({g:"numb",p:["다리가","다리도","다리를","허벅지","엉덩이","허리","발이","발바닥","사타구니","항문","회음부"],w:NUMB,
+  and:["대소변","소변이 안","소변을 못","변을 못","대변이 안","사타구니","항문 주위","안장","다리에 힘","발목에 힘","발이 처","보행이 안","걷기 힘"],
+  u:true,b:6,d:"응급실 / 신경외과",c:["마미증후군 가능성","급성 척수 압박"]});
+// 부위를 모를 때: 세 과를 순서대로 안내
+[["신경과",2,["말초신경병증","뇌혈관 질환 감별","대사 원인(당뇨·비타민 결핍)"]],["정형외과",1,["손목터널증후군 등 신경 포착","관절·인대 주변 신경 압박"]],["신경외과",0,["목·허리 디스크","척추관 협착증"]]]
+  .forEach(([d,b,c])=>BODY.push({g:"numbfb",p:null,w:NUMB,b,d,c,i:INFO[byDept[d]]}));
+
+// ═══ 신체 부위별 규칙 확대 + 승모근 + 피부 가려움의 전신 원인(당뇨 등) ═══
+const SYM=[...A.filter(w=>!NUMBW.test(w)),"불편","뻐근","결리","결려","뭉","뭉침","뻣뻣","뻑뻑","묵직","욱신"];
+const ORGW=[...SYM,"안 좋","안좋","나빠","약해","이상","문제","걱정","검사","검진"];
+ROLE.endo[1]="당뇨·갑상선·호르몬·비타민 결핍처럼 몸속 대사 문제가 원인일 때(저림·가려움·피로 등).";
+Object.assign(ROLE,{
+  derm:["피부과","피부 겉에 보이는 병변(발진·습진·두드러기·건조증)을 진단하고 치료해요."],
+  gi:["소화기내과","위·장·간·담도·췌장 질환. 간 수치 이상이나 황달, 간·담도 문제로 인한 가려움을 봐요."],
+  kid:["신장내과","신장 기능 저하·단백뇨·부종·투석 상담."],
+  hem:["혈액종양내과","원인 모를 빈혈·멍·림프절 비대·체중 감소 등 혈액 질환·암 감별."]
+});
+// 배(복부) 규칙의 '위가'가 '어깨 위가'에 걸리지 않도록
+BODY.filter(e=>!e.g&&e.p&&e.p.includes("뱃속")&&e.d==="소화기내과").forEach(e=>{const U=/(?:어깨|머리|눈|입|코|귀|턱|팔|다리|무릎|가슴)위가/g;e.x=e.x?rx(e.x,U):U});
+const bookOf2=(roles,rows)=>[{title:"🧩 과별로 무엇이 달라요?",rows:roles.map(k=>ROLE[k])},{title:"🏛️ 대학병원 예약할 때 과 고르는 팁",rows:rows}];
+const BOOK_GEN=BOOK_ROWS.filter(r=>r[0]!=="척추는 어느 과로?");
+
+// ── 승모근·목어깨: 정형외과 / 재활의학과 / 신경외과(경추) / 마취통증의학과 / 신경과 ──
+const TRAP_ITEMS={
+  rehab:{d:"재활의학과",when:"승모근이 뭉치고 결리며 컴퓨터·스마트폰·자세 때문에 반복될 때(근막통증증후군)",what:"도수·운동치료, 근막 통증 유발점 주사, 자세 교정"},
+  ortho:{d:"정형외과",when:"어깨 관절을 움직일 때 불편하거나 팔을 들 때 아프고, 회전근개·골절 문제가 의심될 때",what:"X선·초음파·MRI, 주사·물리치료·수술 평가"},
+  nsurg:{d:"신경외과(경추)",when:"승모근·목 통증과 함께 팔·손 저림, 팔로 뻗는 통증, 힘 빠짐이 있거나 목 디스크가 의심될 때",what:"경추 MRI, 신경 압박 평가, 신경 차단술·수술 평가"},
+  pain:{d:"마취통증의학과",when:"약·물리치료로 잘 낫지 않는 만성 근막통증, 유발점 주사·신경 차단이 필요할 때",what:"통증 유발점 주사, 신경 차단, 약물 조절"},
+  neuro:{d:"신경과",when:"긴장성 두통·어지럼이 승모근 통증과 함께 반복될 때",what:"두통·어지럼 진단과 약물 치료"}
+};
+const TRAP_WHERE=[
+  ["승모근 뭉침·결림, 오래 앉아 일한 뒤 심해짐","근막통증증후군 → 재활의학과·정형외과·마취통증의학과"],
+  ["목·승모근 통증 + 팔·손 저림, 팔로 뻗는 통증","경추 디스크·신경근병증 → 신경외과 또는 정형외과(척추)"],
+  ["승모근 통증 + 뒷머리 두통","경추성·긴장성 두통 → 신경과(두통), 재활의학과"],
+  ["어깨를 들 때 아프고 밤에 심함","회전근개·오십견 → 정형외과"],
+  ["목이 뻣뻣하고 열이 남","감염·수막염 감별 → 즉시 진료"],
+  ["한쪽 어깨 통증 + 가슴 답답·식은땀 + 왼팔로 퍼짐","심장 질환 가능 → 즉시 119"],
+  ["승모근이 한쪽만 말라 보이거나 어깨가 처짐","부신경·신경 손상 가능 → 신경외과·신경과"],
+  ["운동 중 갑자기 '뚝' 하며 아픔","근육·힘줄 파열 → 정형외과"]
+];
+function trapInfo(order){
+  return {
+    sum:"승모근(목에서 어깨로 이어지는 근육) 통증은 근육 뭉침(근막통증증후군)이 가장 흔해 재활의학과·정형외과가 먼저지만, 목 디스크처럼 신경이 눌려 팔·손 저림이 함께 오면 신경외과로 연결될 수 있어요. 두통이 동반되면 신경과, 오래 낫지 않으면 마취통증의학과(주사 치료)도 방법이에요.",
+    guide:order.map(k=>TRAP_ITEMS[k]),
+    extra:{title:"승모근·목어깨 통증, 이런 경우 어느 과?",rows:TRAP_WHERE},
+    book:bookOf(["ortho","nsurg","rehab","pain","neuro"]),
+    aid:[
+      ["자세 바꾸기·자주 쉬기","1시간마다 일어나 어깨를 으쓱하고 목을 천천히 돌려 풀어주세요."],
+      ["따뜻한 찜질","뭉친 승모근에 15~20분 온찜질이 도움이 돼요(다친 직후 48시간은 냉찜질)."],
+      ["가벼운 스트레칭","귀를 어깨 쪽으로 천천히 기울여 10~15초 유지하세요. 통증이 커지면 중단하세요."],
+      ["모니터·스마트폰 높이 맞추기","시선을 눈높이에 맞추고, 어깨를 으쓱 올린 채 일하지 마세요."],
+      ["무거운 가방·한쪽 가방 피하기","양쪽에 고르게 메거나 가방 무게를 줄이세요."]
+    ],
+    tips:[
+      ["통증 위치·시간·자세 기록","승모근 어디가, 언제(아침·저녁·일할 때) 아픈지, 팔 저림·두통이 같이 있는지 적어 가세요."],
+      ["이전 검사 결과 가져가기","X선·MRI·물리치료 이력이 있으면 진료가 빨라져요."]
+    ],
+    flags:[
+      "팔·손 저림이나 힘 빠짐이 점점 심해지는 경우",
+      "갑작스러운 극심한 두통, 열, 목이 뻣뻣한 경우",
+      "한쪽 어깨 통증과 함께 가슴 답답함·식은땀·왼팔로 퍼지는 통증(즉시 119)",
+      "넘어지거나 부딪힌 뒤 생긴 통증, 어깨 모양이 달라진 경우",
+      "밤에 자다 깰 만큼 아프거나 원인 모를 체중 감소가 있는 경우"
+    ],
+    ask:"어디가(승모근·목·어깨), 어떻게(뭉침·결림·저림) 아픈지와 팔·손 저림, 두통 동반 여부를 함께 적어 다시 분석하면 진료과가 더 정확해져요."
+  };
+}
+Object.assign(INFO,{
+  trapOrtho:trapInfo(["ortho","rehab","nsurg"]),
+  trapRehab:trapInfo(["rehab","ortho","nsurg"]),
+  trapNsurg:trapInfo(["nsurg","ortho","rehab"]),
+  trapPain:trapInfo(["pain","rehab","ortho"]),
+  trapNeuro:trapInfo(["neuro","rehab","nsurg"])
+});
+
+// ── 피부 가려움: 피부과 외에 당뇨·간·신장·갑상선·빈혈·임신·약물 등 전신 원인 ──
+const ITCH_ITEMS={
+  derm:{d:"피부과",when:"피부에 발진·긁은 자국·건조·각질이 보이거나 특정 부위가 가려울 때",what:"피부 진찰, 보습·연고·항히스타민 처방, 습진·두드러기 감별"},
+  endo:{d:"내분비내과",when:"갈증·잦은 소변·체중 감소·피로가 함께 있거나 당뇨·갑상선 이상이 의심될 때",what:"혈당·당화혈색소·갑상선 검사"},
+  gi:{d:"소화기내과",when:"피부·눈이 노랗거나 소변이 진하고 간·담도 질환이 의심될 때",what:"간기능 검사, 복부 초음파"},
+  kid:{d:"신장내과",when:"부종·거품뇨·소변량 변화가 있고 신장 기능 이상이 의심될 때",what:"소변·혈액검사(크레아티닌), 신장 초음파"},
+  im:{d:"혈액내과 / 내과",when:"빈혈·체중 감소·식은땀 등 전신 증상이 함께 있을 때",what:"혈액검사 등 종합 평가"}
+};
+const ITCH_WHERE=[
+  ["심한 갈증·잦은 소변·체중 감소·피로, 상처가 잘 안 낫고 피부가 건조","당뇨 → 내분비내과(혈당·당화혈색소 검사)"],
+  ["피부·눈이 노랗고 소변이 진함, 술을 많이 마심","간·담도 질환 → 소화기내과"],
+  ["부종·거품뇨·소변량 변화","신장 질환 → 신장내과"],
+  ["땀 많음·체중 변화·가슴 두근거림","갑상선 이상 → 내분비내과"],
+  ["창백·어지럼·피로, 생리양이 많음","철결핍 빈혈 → 내과·혈액내과"],
+  ["건조한 계절·샤워 후 심해짐·각질","건조성 소양증 → 피부과"],
+  ["임신 중 손바닥·발바닥이 밤에 심하게 가려움","임신 중 간내 담즙정체 가능 → 산부인과(조기 진료)"],
+  ["새 약을 먹은 뒤 발진·가려움","약물 반응 → 피부과, 처방한 과"],
+  ["밤에 심한 전신 가려움 + 체중 감소·식은땀·멍울","림프종 등 감별 → 내과·혈액종양내과"]
+];
+function itchInfo(order){
+  return {
+    sum:"피부 가려움은 피부 자체(건조·습진·두드러기) 문제가 가장 흔하지만, 당뇨·간 질환·신장 질환·갑상선 이상·빈혈 같은 전신 질환의 신호일 수도 있어요. 눈에 보이는 발진이 없는데 오래 가렵거나 온몸이 가려우면 원인 검사가 필요해요.",
+    guide:order.map(k=>ITCH_ITEMS[k]),
+    extra:{title:"가려움과 함께 나타나는 증상별로 보면",rows:ITCH_WHERE},
+    book:bookOf2(["derm","endo","gi","kid","hem"],BOOK_GEN),
+    aid:[
+      ["미지근한 물로 짧게 샤워","뜨거운 물·오래 씻기는 피부를 더 건조하게 해요."],
+      ["샤워 직후 보습제","물기가 마르기 전에 향이 없는 보습제를 충분히 바르세요."],
+      ["순한 비누·면 옷","자극이 적은 제품을 쓰고 꽉 끼는 옷·털옷은 피하세요."],
+      ["긁지 않기","손톱을 짧게 하고, 가려울 땐 차가운 수건을 대세요."],
+      ["실내 습도 유지","난방 때 가습기를 사용해 40~60%를 유지하세요."]
+    ],
+    tips:[
+      ["가려운 시기·부위·밤낮 기록","갈증·소변 횟수·체중 변화·피로도도 함께 적어 가세요."],
+      ["복용 약·최근 혈액검사 가져가기","당뇨가 있다면 혈당 기록과 당화혈색소 결과를 챙기세요."]
+    ],
+    flags:[
+      "심한 갈증·소변량 증가와 함께 어지럽거나 의식이 흐린 경우(고혈당 위기 가능)",
+      "피부·눈이 노랗게 변하고 소변이 진해지는 경우",
+      "얼굴·입술이 붓거나 숨이 차는 경우(알레르기 반응, 즉시 119)",
+      "발진과 함께 열이 나거나 물집·고름이 생기는 경우",
+      "임신 중 손바닥·발바닥이 밤에 심하게 가려운 경우",
+      "원인 없이 체중이 빠지고 식은땀이 계속되는 경우",
+      "2주 이상 원인 모를 전신 가려움이 이어지는 경우"
+    ],
+    ask:"가려운 부위(온몸·손발·등 등), 언제 심한지, 갈증·잦은 소변·체중 변화·황달·부종 여부를 함께 적어 다시 분석하면 진료과가 더 정확해져요."
+  };
+}
+Object.assign(INFO,{
+  itchDerm:itchInfo(["derm","endo","im"]),
+  itchEndo:itchInfo(["endo","derm","im"]),
+  itchGi:itchInfo(["gi","derm","endo"]),
+  itchKid:itchInfo(["kid","derm","endo"]),
+  itchIm:itchInfo(["im","endo","derm"])
+});
+const ITCHP=["손바닥","발바닥","손발","손등","발등","피부","살갗","온몸","전신","몸이","몸 전체","팔다리","팔이","다리가","손이","발이","등이","배가","가슴이","허벅지","종아리","몸 곳곳","몸 여기저기","피부 전체","온 몸"];
+const ITCHGEN=["온몸","전신","몸이","몸 전체","팔다리","몸 곳곳","몸 여기저기","피부 전체","온 몸"];
+const iw=(w,d,b,c,k)=>BODY.push({g:"itchsys",p:ITCHP,w,and:ITCHW,x:NOHAND,b,d,c,i:INFO[k]});
+iw(["당뇨","혈당","당화","갈증","목이 말","물을 많이","소변을 자주","소변이 자주","소변이 많","다뇨","체중이 빠","체중 감소","살이 빠","피곤","피로","기운이 없","상처가 안","상처가 잘 안","시야가 흐려","눈이 침침","저림","저려"],
+   "내분비내과",8,["당뇨병(피부 가려움·상처 지연)","당뇨병성 신경병증","갑상선 이상"],"itchEndo");
+iw(["당뇨","혈당","당화","갈증","목이 말","물을 많이","소변을 자주","소변이 자주","소변이 많","다뇨","체중이 빠","체중 감소","살이 빠","피곤","피로","기운이 없","상처가 안","상처가 잘 안","시야가 흐려","눈이 침침"],
+   "피부과",1,["건조성 소양증","당뇨와 동반된 피부 감염·건조(피부 진료도 함께)"],"itchDerm");
+iw(["갑상선","땀이 많","추위","더위를","체중이 늘","두근","맥박","손 떨","손떨"],"내분비내과",4,["갑상선 기능 이상","당뇨병"],"itchEndo");
+iw(["황달","눈이 노랗","피부가 노랗","눈이 노래","피부가 노래","얼굴이 노래","온몸이 노래","노래져","노랗게","눈 흰자가 노","소변이 진","소변 색이 진","옅은 변","회색 변","간수치","간염","간경","술을 많이","음주","알코올"],"소화기내과",5,["간·담도 질환(담즙정체성 가려움)","간염","지방간·간경변"],"itchGi");
+iw(["신장","콩팥","투석","거품","소변량","소변이 줄","부종","붓","크레아티닌","혈압이 높","고혈압"],"신장내과",5,["만성 콩팥병(요독성 가려움)","신증후군","신장 기능 저하"],"itchKid");
+iw(["빈혈","어지러","창백","철분","생리양","생리가 많","얼음이 먹고 싶"],"혈액내과 / 내과",4,["철결핍 빈혈","혈액 질환"],"itchIm");
+iw(["건조","각질","겨울","나이","노인","샤워 후","목욕 후","비누","난방"],"피부과",3,["건조성 소양증","노인성 가려움","접촉성 피부염"],"itchDerm");
+iw(["임신","임산부","임신 중"],"산부인과",5,["임신성 소양증","임신 중 간내 담즙정체증(조기 진료)"]);
+iw(["약 먹고","약을 먹고","복용 후","복용 중","항생제","새로 먹","새 약","진통제"],"피부과 / 내과",3,["약물 발진(약진)","알레르기 반응"],"itchDerm");
+iw(["멍울","식은땀","림프","밤마다 열"],"혈액종양내과 / 내과",4,["림프종 등 혈액 질환 감별","감염"],"itchIm");
+// 전신 가려움은 피부과 + 내분비내과를 함께 안내
+BODY.push({g:"itchsys",p:ITCHGEN,w:ITCHW,b:2,d:"피부과",c:["건성 피부·습진","두드러기","접촉성 피부염"],i:INFO.itchDerm});
+BODY.push({g:"itchsys",p:ITCHGEN,w:ITCHW,b:0,d:"내분비내과",c:["당뇨병·갑상선 이상(전신 가려움 동반)","건조증과 전신 질환 감별"],i:INFO.itchEndo});
+
+// ── 부위별 일반 규칙 (기본 순서는 b 값, 동반 증상이 순서를 바꿈) ──
+const ptn=(p,depts,mods,x,w)=>{
+  const base=w||SYM;
+  depts.forEach(([d,b,c,k])=>BODY.push({g:"ptn",p,w:base,x,b,d,c,i:k?INFO[k]:undefined}));
+  (mods||[]).forEach(m=>BODY.push({g:"ptn",p,w:m.w||[],rw:m.rw,rwl:m.rwl,and:base,x,b:m.b,d:m.d,c:m.c,i:m.k?INFO[m.k]:undefined}));
+};
+// 승모근 / 목어깨
+ptn(["승모근","승모","어깨 위","목어깨","목 어깨","어깨뭉","어깨 뭉","뒷목과 어깨","목과 어깨","어깨와 목"],
+  [["정형외과",2,["근막통증증후군","어깨 질환","목·어깨 근육 긴장"],"trapOrtho"],["재활의학과",2,["근막통증증후군(승모근)","자세성 통증","도수·운동치료 대상"],"trapRehab"],["신경외과",0,["경추 디스크(목→어깨·팔 방사통)","경추 협착·신경근병증"],"trapNsurg"],["마취통증의학과",0,["만성 근막통증(유발점 주사)","신경 차단 치료"],"trapPain"]],
+  [{w:["저림","저려","저리","방사","팔로","팔이","손이","힘이 빠","힘이 없","고개를 돌리","고개를 젖히","기침하면","목 디스크","목디스크","경추","찌릿","전기"],d:"신경외과",b:15,c:["경추 디스크(목→어깨·팔 방사통)","경추 신경근병증"],k:"trapNsurg"},
+   {w:["저림","저려","저리","방사","팔로","팔이","손이","힘이 빠","힘이 없","고개를 돌리","고개를 젖히","기침하면","목 디스크","목디스크","경추","찌릿","전기"],d:"정형외과",b:1,c:["경추 디스크","어깨 질환"],k:"trapOrtho"},
+   {w:["두통","머리가 아","뒷머리","머리가 무겁","머리가 띵"],d:"신경과",b:3,c:["긴장성 두통","경추성 두통"],k:"trapNeuro"},
+   {w:["주사","오래","만성","몇 달","수개월","낫지 않","안 낫","물리치료","약을 먹어도","반복"],d:"마취통증의학과",b:4,c:["만성 근막통증(유발점 주사)","신경 차단 치료"],k:"trapPain"},
+   {w:["팔을 들","팔을 올","팔을 돌","어깨를 돌","어깨를 들","밤에 아","누우면 아","잘 때 아"],d:"정형외과",b:3,c:["회전근개 손상","오십견","어깨 충돌증후군"],k:"trapOrtho"}]);
+// 날개뼈·등 위쪽
+ptn(["날개뼈","견갑골","견갑","등 윗","등 위쪽","등 상부","등 가운데","어깨뼈","광배근"],
+  [["재활의학과",2,["근막통증증후군","자세성 흉추 통증","늑간신경통"]],["정형외과",2,["흉추 염좌","견갑골 질환","척추 질환"]],["신경외과",0,["흉추·경추 디스크"]]],
+  [{w:["숨쉴 때","숨 쉴 때","기침할 때","호흡할 때","깊게 숨"],d:"호흡기내과",b:4,c:["흉막염","폐렴","기흉 감별"]},
+   {w:["식후","명치","속이","기름진","윗배"],d:"소화기내과",b:4,c:["췌장·담낭·위 질환의 연관통"]},
+   {w:["가슴 답답","식은땀","숨이 차","왼팔"],d:"순환기내과(심장내과)",b:4,c:["협심증 감별"]}]);
+// 목 옆
+ptn(["목 옆","목옆","목 한쪽","목이 한쪽","목 측면"],
+  [["재활의학과",2,["근막통증","경추 염좌"]],["이비인후과",1,["림프절염","갑상선염","침샘염"]],["정형외과",1,["경추 질환","목 근육 긴장"]]],
+  [{w:["열이","인후통","목이 붓","편도","감기"],d:"이비인후과",b:4,c:["림프절염","편도염","갑상선염"]},
+   {w:["멍울","혹","덩어리","만져"],d:"이비인후과 / 내분비내과",b:5,c:["림프절 비대","갑상선 결절","경부 종괴"]}]);
+// 옆구리
+ptn(["옆구리","옆배","갈비뼈 아래","갈비뼈 밑","허리 옆"],
+  [["비뇨의학과",2,["요로결석","신우신염","신장 질환"]],["소화기내과",1,["담낭염·췌장염","대장 질환"]],["재활의학과 / 정형외과",1,["늑간신경통","근육 염좌"]]],
+  [{w:["소변","혈뇨","오줌","콩팥","신장","배뇨"],d:"비뇨의학과",b:4,c:["요로결석","신우신염"]},
+   {w:["열이","오한","38"],d:"비뇨의학과",b:3,c:["신우신염"]},
+   {w:["숨쉴 때","숨 쉴 때","기침","호흡"],d:"호흡기내과",b:4,c:["흉막염","폐렴"]},
+   {w:["물집","발진","띠 모양","따갑"],d:"피부과",b:5,c:["대상포진"]},
+   {w:["식후","기름진","오른쪽 위","오른쪽 윗"],d:"소화기내과",b:3,c:["담석증·담낭염"]},
+   {w:["움직일 때","자세","비틀","기침한 후"],d:"재활의학과 / 정형외과",b:3,c:["늑간신경통","근육 염좌"]}]);
+// 골반·고관절·사타구니
+ptn(["골반","고관절","치골","서혜부","엉덩이 관절"],
+  [["정형외과",2,["고관절 질환(관절염·충돌증)","대퇴골두 괴사","근육·힘줄 염증"]],["산부인과",1,["골반염·자궁내막증·난소 질환(여성)","생리통"]],["비뇨의학과",1,["전립선염·요로결석(남성)","서혜부 질환"]]],
+  [{w:["생리","임신","질","냉","자궁","난소","성관계"],d:"산부인과",b:5,c:["골반염","자궁내막증","난소 질환"]},
+   {w:["절뚝","걸을 때","양반다리","다리를 벌","앉았다 일어날","체중"],d:"정형외과",b:3,c:["고관절 관절염","대퇴골두 괴사"]},
+   {w:["허리","디스크","엉덩이에서"],d:"신경외과",b:3,c:["요추 디스크","좌골신경통"]},
+   {w:["소변","전립선","배뇨","고환"],d:"비뇨의학과",b:4,c:["전립선염","요로 질환"]},
+   {w:["불룩","튀어나","볼록"],d:"외과",b:5,c:["서혜부 탈장"]}]);
+// 엉덩이·꼬리뼈
+ptn(["엉덩이","둔부","엉치","꼬리뼈","이상근","앉을 때 엉덩이"],
+  [["정형외과",2,["이상근증후군","천장관절염","꼬리뼈 통증"]],["신경외과",1,["좌골신경통(디스크)","척추관 협착증"]],["재활의학과",1,["근막통증","자세성 통증"]]],
+  [{w:["항문","변","배변","화장실","고름","붓고 뜨거"],d:"대장항문외과",b:5,c:["치핵·치열·항문 농양","모소낭 농양(꼬리뼈 위)"]},
+   {w:["앉을 때","오래 앉","앉았다 일어날","운전"],d:"정형외과",b:2,c:["이상근증후군","꼬리뼈 통증"]},
+   {w:["앉을 때","오래 앉","앉았다 일어날","운전"],d:"재활의학과",b:2,c:["근막통증","자세성 통증"]},
+   {w:["다리로","뻗","방사","당기","허벅지 뒤"],d:"신경외과",b:4,c:["좌골신경통","요추 디스크"]},
+   {w:["혹","붓","고름","피부"],d:"피부과 / 외과",b:4,c:["모소낭 농양","피부 농양"]}]);
+// 손가락 관절
+ptn(["손가락 마디","손가락 관절","손마디","엄지 뿌리","엄지 밑","엄지 쪽 손목","손가락이 굳"],
+  [["정형외과",2,["퇴행성 관절염(헤버든·부샤르 결절)","방아쇠수지","드퀘르뱅 건초염"]],["류마티스내과",2,["류마티스 관절염","건선성 관절염","통풍"]],["재활의학과",0,["작업치료·보조기","관절 보호 교육"]]],
+  [{w:["아침에","아침 뻣뻣","30분","대칭","양손","양쪽 손","여러 관절"],d:"류마티스내과",b:5,c:["류마티스 관절염"]},
+   {w:["딸깍","걸려","걸리","펴지지 않","굽혀지지"],d:"정형외과",b:3,c:["방아쇠수지"]},
+   {w:["엄지","병뚜껑","빨래","육아"],d:"정형외과",b:2,c:["드퀘르뱅 건초염"]}]);
+// 허벅지
+ptn(["허벅지","햄스트링","대퇴","넓적다리","대퇴사두"],
+  [["재활의학과",2,["근육통·근육 파열","근막통증"]],["정형외과",2,["근육·힘줄 손상","고관절·무릎 연관통"]],["신경외과",1,["요추 디스크 방사통"]]],
+  [{w:["붓","붉","열감","한쪽","따뜻","종아리도"],d:"혈관외과",b:5,c:["심부정맥혈전증 가능(한쪽 붓기·열감: 서둘러 진료)"]},
+   {w:["뚝","찢","운동 중","갑자기"],d:"정형외과",b:3,c:["근육 파열"]}]);
+// 종아리
+ptn(["종아리","장딴지","비복근","종아리 뒤"],
+  [["혈관외과",2,["하지정맥류","심부정맥혈전증","동맥 질환(파행)"]],["정형외과",1,["근육 염좌·파열","아킬레스건 문제"]],["재활의학과",1,["근막통증","쥐(근육 경련)"]]],
+  [{w:["한쪽","붓","붉","열감","따뜻","비행기","장시간 앉","누워 있"],d:"혈관외과",b:4,c:["심부정맥혈전증 가능(한쪽 붓기·열감: 서둘러 진료)"]},
+   {w:["걸으면","걷다가","쉬면 나아","파행"],d:"신경외과",b:3,c:["척추관 협착증(보행 시 통증)"]},
+   {w:["걸으면","걷다가","쉬면 나아","파행"],d:"혈관외과",b:2,c:["하지 동맥 질환(파행)"]},
+   {w:["밤에","자다가","쥐"],d:"내과",b:3,c:["전해질 이상(마그네슘·칼륨)","탈수","당뇨 신경병증"]}]);
+// 아킬레스·뒤꿈치 위
+ptn(["아킬레스","아킬레스건","뒤꿈치 위","발뒤꿈치 위"],
+  [["정형외과",3,["아킬레스건염·파열","족저근막염"]],["재활의학과",1,["아킬레스건 재활","운동치료"]]],
+  [{w:["뚝","끊","찢","갑자기"],d:"정형외과",b:3,c:["아킬레스건 파열(서둘러 진료)"]}]);
+// 코 옆
+ptn(["코 옆","콧방울","코 주변","광대 옆","코 양옆"],
+  [["이비인후과",2,["부비동염","비염 합병증"]],["피부과",2,["모낭염·여드름","지루성 피부염"]]],
+  [{w:["누런 콧물","코막힘","얼굴이 눌","두통","감기"],d:"이비인후과",b:4,c:["부비동염(축농증)"]},
+   {w:["뾰루지","여드름","고름","붉","각질","따갑"],d:"피부과",b:3,c:["모낭염·여드름","지루성 피부염"]}]);
+
+// ── 내부 장기 이름으로 말하는 경우 ("심장이 아파요", "간이 안 좋아요", "신장이 안 좋아요") ──
+ptn(["심장이","심장 쪽","심장 부근","심장에","심장 근처","심장 부위"],
+  [["순환기내과(심장내과)",3,["협심증·심근경색 감별","부정맥","심낭염·심근염"]],["정신건강의학과",0,["공황·불안으로 인한 가슴 증상"]],["소화기내과",0,["역류성 식도염"]]],
+  [{w:["불안","공황","스트레스","긴장","가슴이 뛰","숨이 가쁘"],d:"정신건강의학과",b:3,c:["공황장애·불안"]},
+   {w:["식후","신물","쓰림","트림","누우면"],d:"소화기내과",b:3,c:["역류성 식도염"]},
+   {w:["숨쉴 때","기침","호흡"],d:"호흡기내과",b:3,c:["폐렴·흉막염"]}],null,ORGW);
+ptn(["폐가","폐 쪽","폐에","폐 부근","폐 통증"],
+  [["호흡기내과",3,["폐렴·기관지염","기흉","폐색전증 감별"]],["흉부외과",0,["기흉·흉막 질환"]]],
+  [{w:["담배","흡연","금연","가래","객혈"],d:"호흡기내과",b:3,c:["만성 기관지염·COPD","폐암 감별"]}],null,ORGW);
+ptn(["간이","간 쪽","간에","간 부위","간수치","간이 안 좋","간 검사","간 기능","간 수치"],
+  [["소화기내과",3,["지방간·간염","간경변","담도 질환"]]],
+  [{w:["술","음주","알코올","폭음"],d:"정신건강의학과",b:2,c:["알코올 사용 장애"]},
+   {w:["노랗","황달","소변이 진","옅은 변","가려"],d:"소화기내과",b:3,c:["황달을 동반한 간·담도 질환"]}],null,ORGW);
+ptn(["장이","장 쪽","대장","소장","창자","장에","장염"],
+  [["소화기내과",3,["장염","과민성 장증후군","염증성 장질환","대장 질환"]]],
+  [{w:["피","혈변","검은","피가"],d:"대장항문외과",b:3,c:["치핵·치열","대장 질환(검진 권장)"]},
+   {w:["체중","살이 빠","빈혈","40대"],d:"소화기내과",b:3,c:["대장 질환 감별(검진 권장)"]}],null,ORGW);
+ptn(["신장이","콩팥이","신장 쪽","콩팥 쪽","신장에","콩팥에","신장 기능","콩팥 기능"],
+  [["신장내과",3,["만성 콩팥병","사구체 질환","신장 기능 저하"]],["비뇨의학과",2,["요로결석","신우신염","신장 종양"]]],
+  [{w:["옆구리","결석","통증이 심","혈뇨","소변에 피"],d:"비뇨의학과",b:4,c:["요로결석","신우신염"]},
+   {w:["부종","붓","거품","고혈압","피로","소변량"],d:"신장내과",b:3,c:["신증후군","만성 콩팥병"]}],null,ORGW);
+ptn(["식도가","식도 쪽","식도에","목에서 가슴","삼킬 때 가슴"],
+  [["소화기내과",3,["역류성 식도염","식도 경련","식도염"]],["이비인후과",0,["역류성 후두염"]]],
+  [{w:["삼키기","음식이 걸","넘어가지","체중"],d:"소화기내과",b:3,c:["식도 협착·식도 질환 감별"]},
+   {w:["삼키기","음식이 걸","넘어가지","체중"],d:"이비인후과",b:2,c:["인후두 질환"]}],null,ORGW);
+ptn(["기관지가","기관지 쪽","기관지에","기관지염","숨길","기관지 확장"],
+  [["호흡기내과",3,["기관지염","천식","기관지확장증"]],["이비인후과",1,["후비루·인후두 질환"]]],null,null,ORGW);
+ptn(["뇌가","뇌에","뇌 쪽","뇌 속","머릿속이","머리 속이","머리속이"],
+  [["신경과",3,["편두통·긴장성 두통","뇌혈관 질환 감별","어지럼 질환"]],["신경외과",1,["뇌종양·뇌출혈 감별","수두증"]],["정신건강의학과",0,["불안·우울·수면 문제로 인한 머리 증상"]]],
+  [{w:["부딪","다친","넘어","외상","사고"],d:"신경외과",b:5,c:["두부 외상(뇌진탕·뇌출혈 감별)"]},
+   {w:["기억","깜빡","멍해","집중"],d:"신경과",b:2,c:["경도인지장애","치매"]},
+   {w:["기억","깜빡","멍해","집중"],d:"정신건강의학과",b:2,c:["우울·불안으로 인한 집중력 저하"]}],null,[...SYM,"안 좋","안좋","나빠","울려","멍해","띵","무거","터질","터져"]);
+
+// ── 오탐 방지 (글자가 우연히 겹치는 말) ──
+// '엉덩이가·아이가·손잡이가'의 '이가'는 치아로 보지 않음 ('오른쪽 이가'처럼 앞이 쪽/위/아래/앞/뒤면 치아)
+(()=>{const T=/(?<=[가-힣])(?<![쪽래위앞뒤윗랫가])이가/g;BODY.filter(e=>e.p&&e.p.includes("이가")).forEach(e=>{e.x=e.x?rx(e.x,T):T})})();
+// 치아 표현 보강 (윗니·아랫니·송곳니)
+BODY.filter(e=>!e.g&&e.p&&e.p.includes("찬물")).forEach(e=>e.p.push("윗니","아랫니","송곳니","어금니가","앞니가"));
+// '날개뼈가·갈비뼈가' 같은 특정 뼈 이름은 일반 '뼈가' 규칙에서 제외
+(()=>{const B=/(?:날개|어깨|광대|갈비|꼬리|복사|쇄골|정강|턱|코|두개|엉덩|척추|골반)뼈가/g;BODY.filter(e=>!e.g&&e.p&&e.p.includes("뼈가")).forEach(e=>{e.x=e.x?rx(e.x,B):B})})();
+// 장기 이름(간·폐·장)이 '시간이·민폐가·사장이·직장에'처럼 다른 낱말의 일부일 때는 제외
+(()=>{
+  const ok="는은가이도의내제저니나고서며면데때다요죠야네";
+  const G=new RegExp("(?<=[가-힣])(?<!["+ok+"])간(?=이|에|쪽|부위|수치|검사|기능)","g");
+  // 일반 규칙의 '간이'(시간이·공간이에도 걸림)는 부위 규칙이 대신 처리
+  RULES.forEach(r=>{r.k=r.k.filter(w=>w!=="간이")});
+  // 부위 단어가 단독으로 걸리던 일반 규칙을 '증상 표현이 붙은 경우'로 좁힘 (허리띠·신장개업·필라테스 교정 등 오탐 방지)
+  const sw=(pred,drop,add)=>{const r=RULES.find(pred);if(r)r.k=r.k.filter(w=>!drop.includes(w)).concat(add)};
+  sw(r=>r.k.includes("허리")&&r.k.includes("디스크")&&r.k.includes("삐"),["허리","어깨","무릎","관절"],
+     ["허리가 안 좋","허리 불편","허리 문제","어깨가 안 좋","어깨 불편","어깨 문제","무릎이 안 좋","무릎 불편","무릎 문제","관절이 안 좋","관절 불편","관절 문제","관절염"]);
+  RULES.forEach(r=>{if(r.k.includes("신장")){r.k=r.k.filter(w=>w!=="신장").concat(["신장이","신장 기능","신장 쪽","신장 질환","신장병","신장염","신장 검사","신장 통증"])}});
+  RULES.forEach(r=>{if(r.k.includes("교정")){r.k=r.k.filter(w=>w!=="교정").concat(["치아 교정","치아교정","교정기","교정 장치","교정장치","교정 치료"])}});
+  const L=new RegExp("(?<=[가-힣])(?<!["+ok+"])폐(?=가|에|쪽|부근|통증)","g");
+  const J2=new RegExp("(?<=[가-힣])(?<!["+ok+"대소위])장(?=이|쪽|에|염)","g");
+  BODY.filter(e=>e.g==="ptn"&&e.p&&e.p.includes("간수치")).forEach(e=>{e.x=e.x?rx(e.x,G):G});
+  BODY.filter(e=>e.g==="ptn"&&e.p&&e.p.includes("폐 통증")).forEach(e=>{e.x=e.x?rx(e.x,L):L});
+  BODY.filter(e=>e.g==="ptn"&&e.p&&e.p.includes("창자")).forEach(e=>{e.x=e.x?rx(e.x,J2):J2});
+})();
+// '신장이·심장이·췌장이'의 '장이'는 장(腸) 규칙에서 제외
+(()=>{const J=/(?:신|심|췌|폐)장(?=이|쪽|에)/g;BODY.filter(e=>e.g==="ptn"&&e.p&&e.p.includes("창자")).forEach(e=>{e.x=e.x?rx(e.x,J):J})})();
+
+const CHIPS=["열","기침","목 아픔","콧물","두통","어지러움","복통","설사","속쓰림","변비","허리 통증","무릎 통증","어깨 통증","피부 가려움","눈 충혈","귀 통증","치통","소변 불편","생리통","불면","피로","두근거림","입안 쓰라림","목 뻣뻣함","피부 까짐","무릎 시림","온몸 쑤심","눈 따가움","소변볼 때 쓰라림","발뒤꿈치 갈라짐","손 저림","팔 저림","다리 저림","발 저림","얼굴 저림","양손 저림","승모근 뭉침","온몸 가려움","옆구리 통증","종아리 통증","골반 통증"];
 
 const $=id=>document.getElementById(id);
 const sym=$("sym");
-CHIPS.forEach(t=>{const b=document.createElement("button");b.className="chip";b.textContent="+ "+t;
-  b.onclick=()=>{sym.value=(sym.value?sym.value.trim()+", ":"")+t};$("chips").appendChild(b)});
+// 해시태그형 추천 증상 + 부위별 카드(부위를 누르면 그 부위의 흔한 증상이 해시태그로 바뀜)
+const DEFAULT_CHIPS=["두통","어지러움","복통","설사","속쓰림","허리 통증","승모근 뭉침","눈 간지러움","손 저림","피부 가려움","불면","피로"];
+const PARTS_UI=[
+  ["머리","🧠",["두통","어지러움","머리 띵함","뒷머리 아픔","머리 가려움","탈모"]],
+  ["눈","👁️",["눈 간지러움","눈 충혈","눈 건조","눈 이물감","눈 시림","눈꺼풀 떨림"]],
+  ["귀","👂",["귀 통증","귀 먹먹함","이명","귀 가려움","귀에서 물"]],
+  ["코","👃",["코막힘","콧물","재채기","코피","냄새 못 맡음"]],
+  ["입·치아","🦷",["치통","잇몸 출혈","입안 쓰라림","입냄새","입꼬리 갈라짐","턱 통증"]],
+  ["목","🗣️",["목 아픔","목 뻣뻣함","쉰 목소리","삼키기 힘듦","목 멍울"]],
+  ["가슴","🫁",["가슴 통증","두근거림","기침","숨참","가슴 답답함"]],
+  ["배","🤢",["복통","속쓰림","설사","변비","더부룩함","배 아프고 소변 이상"]],
+  ["허리·등","🧍",["허리 통증","승모근 뭉침","날개뼈 통증","다리 저림","목 어깨 뻐근함"]],
+  ["팔·손","🖐️",["손 저림","손목 통증","팔꿈치 통증","어깨 통증","손가락 마디 뻣뻣함"]],
+  ["다리·발","🦵",["무릎 통증","종아리 통증","발바닥 통증","발목 삠","다리 저림","발냄새"]],
+  ["피부","🧴",["피부 가려움","피부 발진","피부 건조","피부 까짐","온몸 가려움","두드러기"]],
+  ["소변·생식기","🚻",["소변 쓰라림","잦은 소변","생리통","질 분비물","사타구니 가려움"]],
+  ["마음·수면","😴",["불면","불안","우울","피로","집중 안 됨"]]
+];
+let activePart=null;
+const renderChips=list=>{
+  const box=$("chips");box.innerHTML="";
+  list.forEach(t=>{const b=document.createElement("button");b.type="button";b.className="chip";b.textContent="# "+t;
+    b.onclick=()=>{sym.value=(sym.value?sym.value.trim()+", ":"")+t;sym.focus()};box.appendChild(b)});
+};
+renderChips(DEFAULT_CHIPS);
+const pg=$("pgrid");
+PARTS_UI.forEach(([name,em,list])=>{
+  const b=document.createElement("button");b.type="button";b.className="pcard";b.innerHTML=`<span class="em">${em}</span>${name}`;
+  b.onclick=()=>{
+    const same=activePart===name;activePart=same?null:name;
+    pg.querySelectorAll(".pcard").forEach(x=>x.classList.remove("on"));
+    if(same)renderChips(DEFAULT_CHIPS);else{b.classList.add("on");renderChips(list)}
+    $("sform").scrollIntoView({behavior:"smooth",block:"center"});sym.focus();
+  };
+  pg.appendChild(b);
+});
 
 function analyze(text){
   // 띄어쓰기 유무를 무시하고 비교 ("눈이 간지러워요" = "눈이간지러워요" = "눈 이 간 지 러 워 요")
@@ -1198,7 +1787,8 @@ function analyze(text){
   // '손목·발목·제목' 같은 단어의 '목'이 목(인후) 키워드에 걸리지 않도록, 해당 단어가 없는 키워드만 가려진 문장으로 비교
   const NECK=/(손|발|팔|눈|양|호|제|과|종|항|안)목/;
   const MASK=/(손|발|팔|눈|양|호|제|과|종|항|안)목/g;
-  const t2=t.replace(MASK,"$1§");
+  // '어깨 위가'처럼 신체 부위 뒤의 '위가'는 위(胃) 키워드로 보지 않음
+  const t2=t.replace(MASK,"$1§").replace(/(어깨|머리|눈|입|코|귀|턱|팔|다리|무릎|가슴)위가/g,"$1§").replace(/(?<=[가-힣])(?<![쪽래위앞뒤윗랫가])이가/g,"§");
   const hits=[];
   RULES.forEach(r=>{
     const ks=r.k.filter(w=>{const nw=norm(w);return (NECK.test(nw)?t:t2).includes(nw)});
@@ -1208,13 +1798,13 @@ function analyze(text){
   // 조사 없는 부위 표현 ("눈 간지러움", "배 아파요", "머리 아파요")도 부위로 인식:
   // '부위 + 증상표현'이 바로 붙어 있으면(띄어쓰기 무시) 해당 부위로 본다
   const PARTICLE=/(이|가|도|를|을|에서|에|은|는|의)$/;
-  const BARE_OK=new Set(["눈","코","귀","입","목","배","손","발","팔","등","턱","혀","머리","다리","얼굴","가슴","허리","어깨","피부","두피"]);
+  const BARE_OK=new Set(["눈","코","귀","입","목","배","손","발","팔","등","턱","혀","머리","다리","얼굴","가슴","허리","어깨","피부","두피","몸"]);
   const stem=w=>{const n=norm(w);const s=n.replace(PARTICLE,"");return BARE_OK.has(s)?s:n};
   const reEsc=s=>s.replace(/[.*+?^${}()|[\]\\]/g,"\\$&");
   const bareInfo=e=>{
     if(e._bare)return e._bare;
     const bs=[...new Set(e.p.filter(p=>stem(p)!==norm(p)).map(stem))];
-    const alt=e.w.map(norm).map(reEsc).join("|");
+    const alt=(e.and||e.w).map(norm).map(reEsc).join("|");
     e._bare=bs.map(b=>({b,rx:new RegExp(reEsc(b)+"(?:"+alt+")")}));
     return e._bare;
   };
@@ -1225,6 +1815,7 @@ function analyze(text){
   const run=e=>{
     const tt=e.x?t.replace(e.x,""):t;
     const mwo=e.w.filter(w=>tt.includes(norm(w)));
+    if(e.rw&&e.rw.test(tt))mwo.push(e.rwl||"해당 부위");
     if(!mwo.length)return false;
     let mw=mwo.map(norm);
     let pm=1,parts=[];
@@ -1295,6 +1886,7 @@ function infoHtml(f,open){
     `</div></div></div>`;
   if(f.extra)h+=`<div class="sec purple inner"><div class="sec-h">🧭 ${esc(f.extra.title)}</div><div class="sec-b"><ul class="rows">`+
     f.extra.rows.map(r=>`<li><b>${esc(r[0])}</b><span>${esc(r[1])}</span></li>`).join("")+`</ul></div></div>`;
+  if(f.book)h+=f.book.map(b=>`<div class="sec teal inner"><div class="sec-h">${esc(b.title)}</div><div class="sec-b"><ul class="rows">`+b.rows.map(r=>`<li><b>${esc(r[0])}</b><span>${esc(r[1])}</span></li>`).join("")+`</ul></div></div>`).join("");
   if(f.aid&&f.aid.length){
     const urgent=f.aidTitle==="urgent";
     h+=`<div class="sec ${urgent?"red":"green"} inner"><div class="sec-h">${urgent?"🚑 응급 상황 — 119 도착 전 조치":"🩹 증상이 가볍다면 — 집에서 할 수 있는 응급 조치"}</div><div class="sec-b"><ol class="steps">`+
@@ -1461,7 +2053,7 @@ $("go").onclick=()=>{
     return;
   }
   const urgent=res.some(r=>r.urgent);
-  let html=`<div class="lead">💡 부위가 확인되면 그 부위의 진료과를 먼저, <b>1순위 · 2순위 · 3순위</b>로 보여드려요.</div>`;
+  let html=`<h2 class="tt" style="margin-top:28px"><span>증상 분석</span> <b>결과</b></h2><div class="lead">💡 부위가 확인되면 그 부위의 진료과를 먼저, <b>1순위 · 2순위 · 3순위</b>로 보여드려요.</div>`;
   if(urgent) html+=`<div class="banner"><span class="siren">🚨</span><div><div class="b1">응급 가능성이 있는 증상이 포함돼 있어요</div><div>증상이 갑자기 시작됐거나 심하다면 지체하지 말고 <b>119</b>에 연락하거나 가까운 응급실로 가세요.</div></div></div>`;
   res.slice(0,3).forEach((r,i)=>{
     const col=r.urgent?"red":["blue","green","purple"][i];
