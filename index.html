@@ -51,6 +51,7 @@
   .searchbar button:active{filter:brightness(.92)}
   .chips{display:flex;flex-wrap:wrap;justify-content:center;gap:8px;margin:18px auto 0;max-width:840px}
   .chip{border:0;background:var(--chip);color:var(--chiptx);border-radius:999px;padding:5px 15px;font:inherit;font-size:.88rem;font-weight:700;cursor:pointer;margin:0}
+  .chip.more{background:transparent;border:1px dashed var(--blue);color:var(--blue)}
   .chip:hover{background:color-mix(in srgb,var(--blue) 18%,var(--card));color:var(--blue)}
 
   /* ── 이중 굵기 섹션 제목 ── */
@@ -159,7 +160,7 @@
 <body>
 <header class="gnb">
   <div class="wrap">
-    <a class="brand" href="#top"><span class="logo">🩺</span><span>증상 체크<small>진료과 안내</small></span></a>
+    <a class="brand" href="#top" title="처음 화면으로" aria-label="처음 화면으로"><span class="logo">🩺</span><span>증상 체크<small>진료과 안내</small></span></a>
     <nav aria-label="바로가기">
       <a class="opt" href="#parts">부위별 찾기</a>
       <a class="opt" href="#guide">이용안내</a>
@@ -515,6 +516,18 @@ const RULES = [
   // ── 부위·장기 이름 관련 응급 ──
   {keep:true,k:["심장이 아","심장이 쑤","심장이 조이","심장이 답답","심장 통증","심장이 터질","심장이 멎"], c:["협심증·심근경색 가능성","부정맥"], d:"응급실 / 순환기내과(심장내과)", urgent:true},
   {k:["한쪽 다리가 붓고 아","한쪽 종아리가 붓고 아","한쪽 다리가 붓고 뜨거","한쪽 다리가 붓고 붉","한쪽 다리가 갑자기 붓"], c:["심부정맥혈전증 가능","폐색전증 위험"], d:"응급실 / 혈관외과", urgent:true},
+
+  // ── 해시태그 추천 키워드 보강 (표현 변형) ──
+  {k:["머리 띵","머리가 띵","머리띵","머리가 무거","머리 무거","머리가 무겁","머리 무겁","머리가 멍","머리가 멍해"], c:["긴장성 두통","수면 부족·피로","빈혈·저혈압","부비동염","고혈압"], d:"신경과 / 내과"},
+  {k:["눈물이 많","눈물 많","눈물이 자꾸","눈물이 줄줄","눈물이 계속","눈물이 고여"], c:["안구건조증(반사성 눈물)","눈물길 막힘","결막염","알레르기"], d:"안과"},
+  {k:["귀에서 물","귀에서 진물","귀에서 고름","귀에서 액체"], c:["외이도염","중이염(고막 천공)","귀지·이물"], d:"이비인후과"},
+  {k:["잘 안 들","잘 못 들","청력이 떨","안 들려","귀가 안 들","소리가 작게"], c:["난청(노인성·소음성)","중이염·귀지 막힘","돌발성 난청(갑자기라면 서둘러 진료)"], d:"이비인후과"},
+  {k:["귀지","귀지가 많","귀가 막힌 것"], c:["귀지 막힘","외이도 이물"], d:"이비인후과"},
+  {k:["냄새 못 맡","냄새못맡","후각이","후각 상실","냄새를 못"], c:["비염·부비동염","감기·코로나 후 후각 저하","비용종"], d:"이비인후과"},
+  {k:["삼키기 힘","삼키기가 힘","삼키기가 어려","삼키기 불편","삼킬 때 아프","삼키는 게 힘"], c:["식도 질환","인후·후두 질환","신경 질환(연하장애)"], d:"이비인후과 / 소화기내과 / 신경과"},
+  {k:["변이 가늘","변이 가늘어","대변이 가늘","변 굵기"], c:["대장 질환 감별(용종·대장암)","치핵","변비"], d:"소화기내과 / 대장항문외과"},
+  {k:["집중 안","집중이 안","집중을 못","집중 못","집중이 잘 안"], c:["ADHD","우울·불안","수면 부족","갑상선 이상"], d:"정신건강의학과 / 신경과"},
+  {k:["숨참","숨이 참","숨차","숨이 가쁨","숨이 가쁘"], c:["심폐 질환","천식·기관지염","빈혈","불안·공황"], d:"호흡기내과 / 순환기내과(심장내과)"},
 ];
 
 // ── 상세 안내 (진료과 선택 가이드 / 병원 가기 전 주의사항 / 바로 병원에 가야 하는 신호) ──
@@ -1744,41 +1757,61 @@ const CHIPS=["열","기침","목 아픔","콧물","두통","어지러움","복�
 const $=id=>document.getElementById(id);
 const sym=$("sym");
 // 해시태그형 추천 증상 + 부위별 카드(부위를 누르면 그 부위의 흔한 증상이 해시태그로 바뀜)
-const DEFAULT_CHIPS=["두통","어지러움","복통","설사","속쓰림","허리 통증","승모근 뭉침","눈 간지러움","손 저림","피부 가려움","불면","피로"];
+const DEFAULT_CHIPS=["두통","어지러움","복통","설사","속쓰림","허리 통증","승모근 뭉침","눈 간지러움","손 저림","피부 가려움","불면","피로","기침","콧물","무릎 통증","생리통","소변 쓰라림","열"];
 const PARTS_UI=[
-  ["머리","🧠",["두통","어지러움","머리 띵함","뒷머리 아픔","머리 가려움","탈모"]],
-  ["눈","👁️",["눈 간지러움","눈 충혈","눈 건조","눈 이물감","눈 시림","눈꺼풀 떨림"]],
-  ["귀","👂",["귀 통증","귀 먹먹함","이명","귀 가려움","귀에서 물"]],
-  ["코","👃",["코막힘","콧물","재채기","코피","냄새 못 맡음"]],
-  ["입·치아","🦷",["치통","잇몸 출혈","입안 쓰라림","입냄새","입꼬리 갈라짐","턱 통증"]],
-  ["목","🗣️",["목 아픔","목 뻣뻣함","쉰 목소리","삼키기 힘듦","목 멍울"]],
-  ["가슴","🫁",["가슴 통증","두근거림","기침","숨참","가슴 답답함"]],
-  ["배","🤢",["복통","속쓰림","설사","변비","더부룩함","배 아프고 소변 이상"]],
-  ["허리·등","🧍",["허리 통증","승모근 뭉침","날개뼈 통증","다리 저림","목 어깨 뻐근함"]],
-  ["팔·손","🖐️",["손 저림","손목 통증","팔꿈치 통증","어깨 통증","손가락 마디 뻣뻣함"]],
-  ["다리·발","🦵",["무릎 통증","종아리 통증","발바닥 통증","발목 삠","다리 저림","발냄새"]],
-  ["피부","🧴",["피부 가려움","피부 발진","피부 건조","피부 까짐","온몸 가려움","두드러기"]],
-  ["소변·생식기","🚻",["소변 쓰라림","잦은 소변","생리통","질 분비물","사타구니 가려움"]],
-  ["마음·수면","😴",["불면","불안","우울","피로","집중 안 됨"]]
+  ["머리","🧠",["두통","편두통","어지러움","머리 띵함","뒷머리 아픔","관자놀이 통증","머리 가려움","탈모","비듬","머리 무거움","머리를 부딪힘","기억력 저하","얼굴 마비","두피 따가움"]],
+  ["눈","👁️",["눈 간지러움","눈 충혈","눈 건조","눈 이물감","눈 시림","눈꺼풀 떨림","눈곱","다래끼","눈 침침함","눈 통증","눈물 많음","눈 붓기","시야 흐림","눈앞에 날파리","물체가 두 개로 보임","눈 피로"]],
+  ["귀","👂",["귀 통증","귀 먹먹함","이명","귀 가려움","귀에서 물","잘 안 들림","귀지","귀 뒤 통증","귓불 찢어짐","귀에서 소리"]],
+  ["코","👃",["코막힘","콧물","재채기","코피","냄새 못 맡음","코골이","누런 콧물","코 가려움","코 옆 통증","후비루","코 건조"]],
+  ["입·치아","🦷",["치통","잇몸 출혈","입안 쓰라림","입냄새","입꼬리 갈라짐","턱 통증","이가 시림","사랑니 통증","입안 헐음","혀 통증","입 마름","턱에서 소리","잇몸 붓기","입술 갈라짐","이갈이"]],
+  ["목","🗣️",["목 아픔","목 뻣뻣함","쉰 목소리","삼키기 힘듦","목 멍울","목 이물감","목 가려움","편도 부음","가래","승모근 뭉침","목 디스크"]],
+  ["가슴","🫁",["가슴 통증","두근거림","기침","숨참","가슴 답답함","가래","쌕쌕거림","갈비뼈 통증","가슴 멍울","숨쉴 때 가슴 통증","가슴 쓰림"]],
+  ["배","🤢",["복통","속쓰림","설사","변비","더부룩함","메스꺼움","구토","아랫배 통증","배꼽 주위 통증","오른쪽 아랫배 통증","식후 복통","복부 팽만","혈변","변이 가늘어짐","배에 가스"]],
+  ["허리·등","🧍",["허리 통증","승모근 뭉침","날개뼈 통증","다리 저림","목 어깨 뻐근함","엉덩이 통증","꼬리뼈 통증","척추측만","허리 디스크","옆구리 통증","등 통증","허리 뻣뻣함","골반 통증"]],
+  ["팔·손","🖐️",["손 저림","손목 통증","팔꿈치 통증","어깨 통증","손가락 마디 뻣뻣함","팔 저림","손 떨림","방아쇠수지","손이 트고 갈라짐","오십견","손목터널"]],
+  ["다리·발","🦵",["무릎 통증","종아리 통증","발바닥 통증","발목 삠","다리 저림","발냄새","허벅지 통증","종아리 쥐","발뒤꿈치 통증","아킬레스건 통증","다리 붓기","발가락 통증","무좀","티눈"]],
+  ["피부","🧴",["피부 가려움","피부 발진","피부 건조","피부 까짐","온몸 가려움","두드러기","여드름","습진","띠 모양 발진","벌레 물림","화상","사마귀","땀이 많음","점이 변함"]],
+  ["소변·생식기","🚻",["소변 쓰라림","잦은 소변","생리통","질 분비물","사타구니 가려움","혈뇨","생리불순","소변 거품","소변이 안 나옴","질 가려움","밤에 소변","요실금","고환 통증"]],
+  ["전신·열","🌡️",["열","오한","몸살","식은땀","체중 감소","갈증","온몸 붓기","피로","기운이 없음","열이 안 떨어짐","어지럼과 구토"]],
+  ["마음·수면","😴",["불면","불안","우울","피로","집중 안 됨","공황","무기력","악몽","낮에 졸림","스트레스","술을 끊고 싶음"]],
+  ["아이·영유아","🧒",["아이가 열이 나요","아이 기침","아이 구토","아이 복통","아기가 보채요","기저귀 발진","아이 야뇨","아이 콧물","아이 귀를 만져요","아이가 안 먹어요"]],
+  ["임신·여성","🤰",["입덧","임신 중 복통","질 출혈","생리가 늦음","갱년기","유방 멍울","생리통","질염","임신 중 가려움","산후 우울"]]
 ];
-let activePart=null;
-const renderChips=list=>{
+const ALL_CHIPS=[...new Set(PARTS_UI.flatMap(p=>p[2]))];
+let activePart=null,chipsExpanded=false;
+const renderChips=(list,more)=>{
   const box=$("chips");box.innerHTML="";
   list.forEach(t=>{const b=document.createElement("button");b.type="button";b.className="chip";b.textContent="# "+t;
     b.onclick=()=>{sym.value=(sym.value?sym.value.trim()+", ":"")+t;sym.focus()};box.appendChild(b)});
+  if(more){
+    const m=document.createElement("button");m.type="button";m.className="chip more";
+    m.textContent=chipsExpanded?"접기 ▲":"더보기 ("+ALL_CHIPS.length+"개) ▼";
+    m.onclick=()=>{chipsExpanded=!chipsExpanded;renderChips(chipsExpanded?ALL_CHIPS:DEFAULT_CHIPS,true)};
+    box.appendChild(m);
+  }
 };
-renderChips(DEFAULT_CHIPS);
+renderChips(DEFAULT_CHIPS,true);
 const pg=$("pgrid");
 PARTS_UI.forEach(([name,em,list])=>{
   const b=document.createElement("button");b.type="button";b.className="pcard";b.innerHTML=`<span class="em">${em}</span>${name}`;
   b.onclick=()=>{
     const same=activePart===name;activePart=same?null:name;
     pg.querySelectorAll(".pcard").forEach(x=>x.classList.remove("on"));
-    if(same)renderChips(DEFAULT_CHIPS);else{b.classList.add("on");renderChips(list)}
+    if(same){chipsExpanded=false;renderChips(DEFAULT_CHIPS,true)}else{b.classList.add("on");renderChips(list,false)}
     $("sform").scrollIntoView({behavior:"smooth",block:"center"});sym.focus();
   };
   pg.appendChild(b);
 });
+// 왼쪽 위 로고를 누르면 처음 화면으로 (결과·입력·선택한 부위 초기화)
+const goHome=()=>{
+  const r=$("result");r.classList.add("hide");r.innerHTML="";
+  if(typeof map!=="undefined"&&map){try{map.remove()}catch(e){}map=null}
+  sym.value="";activePart=null;chipsExpanded=false;
+  pg.querySelectorAll(".pcard").forEach(x=>x.classList.remove("on"));
+  renderChips(DEFAULT_CHIPS,true);
+  window.scrollTo({top:0,behavior:"smooth"});
+};
+document.querySelector(".brand").addEventListener("click",e=>{e.preventDefault();goHome()});
 
 function analyze(text){
   // 띄어쓰기 유무를 무시하고 비교 ("눈이 간지러워요" = "눈이간지러워요" = "눈 이 간 지 러 워 요")
@@ -1788,10 +1821,12 @@ function analyze(text){
   const NECK=/(손|발|팔|눈|양|호|제|과|종|항|안)목/;
   const MASK=/(손|발|팔|눈|양|호|제|과|종|항|안)목/g;
   // '어깨 위가'처럼 신체 부위 뒤의 '위가'는 위(胃) 키워드로 보지 않음
-  const t2=t.replace(MASK,"$1§").replace(/(어깨|머리|눈|입|코|귀|턱|팔|다리|무릎|가슴)위가/g,"$1§").replace(/(?<=[가-힣])(?<![쪽래위앞뒤윗랫가])이가/g,"§");
+  const t2a=t.replace(MASK,"$1§").replace(/(어깨|머리|눈|입|코|귀|턱|팔|다리|무릎|가슴)위가/g,"$1§");
+  // 치아 키워드('이가 아' 등)에만 적용: '엉덩이가 아파요'의 '이가'는 치아가 아님 ('아이가 열' 같은 키워드는 그대로 둠)
+  const t2=t2a.replace(/(?<=[가-힣])(?<![쪽래위앞뒤윗랫가])이가/g,"§");
   const hits=[];
   RULES.forEach(r=>{
-    const ks=r.k.filter(w=>{const nw=norm(w);return (NECK.test(nw)?t:t2).includes(nw)});
+    const ks=r.k.filter(w=>{const nw=norm(w);return (NECK.test(nw)?t:(nw.startsWith("이가")?t2:t2a)).includes(nw)});
     if(ks.length)hits.push({r,n:ks.length,part:false,why:{p:[],w:ks.slice(0,3)}});
   });
 
